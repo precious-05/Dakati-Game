@@ -105,6 +105,9 @@ android.ndk = 25b
 # (bool) Enable AndroidX support
 android.enable_androidx = True
 
+# (bool) Automatically accept Android SDK license
+android.accept_sdk_license = True
+
 # (str) Format of the artifact to build (apk or aab)
 android.archs = armeabi-v7a, arm64-v8a
 

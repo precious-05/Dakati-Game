@@ -18,13 +18,61 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # Step 2: Set up Python environment
+      # Step 2: Set up Java JDK 17 (Required for Android build tools)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Step 3: Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # Step 3: Cache Buildozer and Android SDK/NDK files to speed up subsequent builds
+      # Step 4: Install Linux System Dependencies
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            zip \
+            unzip \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo5 \
+            cmake \
+            libffi-dev \
+            libssl-dev \
+            automake || \
+          sudo apt-get install -y \
+            git \
+            zip \
+            unzip \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo6 \
+            cmake \
+            libffi-dev \
+            libssl-dev \
+            automake
+
+      # Step 5: Install Buildozer, Cython, and Virtualenv
+      - name: Install Buildozer & Cython
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade buildozer "cython<3.0.0" virtualenv
+
+      # Step 6: Cache Buildozer Global and Project directories
       - name: Cache Buildozer Global Directory
         uses: actions/cache@v4
         with:
@@ -41,15 +89,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-project-
 
-      # Step 4: Run Buildozer action to compile the APK
-      - name: Build Android APK with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          workdir: .
-          buildozer_version: stable
+      # Step 7: Build Android APK
+      - name: Build APK with Buildozer
+        run: |
+          # Add local pip binaries to PATH in case they are not present
+          export PATH=$PATH:$HOME/.local/bin
+          # Run buildozer in debug mode
+          buildozer android debug
 
-      # Step 5: Upload the generated APK as an artifact
+      # Step 8: Upload Compiled APK
       - name: Upload Compiled APK
         uses: actions/upload-artifact@v4
         with:
