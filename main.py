@@ -12,7 +12,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.image import Image
 from kivy.uix.modalview import ModalView
 from kivy.core.window import Window
-from kivy.graphics import Color, Rectangle, RoundedRectangle, Ellipse
+from kivy.graphics import Color, Rectangle, RoundedRectangle, Ellipse, Line
 from kivy.metrics import dp
 from kivy.properties import ListProperty, NumericProperty, StringProperty, ObjectProperty, BooleanProperty
 from kivy.clock import Clock
@@ -25,9 +25,6 @@ from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.core.text import Label as CoreLabel
-from kivy.graphics import Line, StencilPop, StencilPush, StencilUse
-from kivy.animation import Animation
-from kivy.uix.modalview import ModalView
 
 # Set mobile-friendly default font sizes
 MOBILE_FONT_XL = '22sp'
@@ -40,12 +37,15 @@ MOBILE_FONT_XS = '12sp'
 CARD_WIDTH = dp(65)
 CARD_HEIGHT = dp(95)
 
+# Configure soft input mode for mobile keyboard handling
+Window.softinput_mode = 'pan'
+
 # Load custom KV language strings with mobile sizing
 Builder.load_string('''
 <PlayerCard>:
     orientation: 'vertical'
     size_hint: (None, None)
-    size: ({}, {})
+    size: (dp(65), dp(95))
     canvas.before:
         Color:
             rgba: (0.1, 0.1, 0.2, 1) if not root.selected else (0.3, 0.2, 0.4, 1)
@@ -60,7 +60,7 @@ Builder.load_string('''
             width: 1.5
     Label:
         text: root.player_name
-        font_size: '{}'
+        font_size: '12sp'
         bold: True
         color: (1, 1, 1, 1)
         size_hint_y: None
@@ -69,14 +69,14 @@ Builder.load_string('''
         halign: 'center'
         valign: 'middle'
     Image:
-        id: image  # THIS IS THE CRUCIAL CHANGE
+        id: image
         source: root.role_icon
         size_hint: (1, 0.6)
         allow_stretch: True
         keep_ratio: True
     Label:
         text: root.role if root.show_role else '?'
-        font_size: '10sp'  # Smaller font
+        font_size: '10sp'
         color: (1, 1, 1, 1)
         size_hint_y: None
         height: dp(15)
@@ -89,50 +89,55 @@ Builder.load_string('''
             source: root.background
             pos: self.pos
             size: self.size
-    orientation: 'vertical'
-    padding: dp(20)
-    spacing: dp(15)
-    
+            
     BoxLayout:
         orientation: 'vertical'
+        padding: dp(24)
         spacing: dp(20)
-        size_hint_y: 0.9
-        pos_hint: {{'center_x': 0.5, 'center_y': 0.5}}
+        size_hint: (1, 1)
         
+        Widget:
+            size_hint_y: 0.15
+            
         # Player Name
         Label:
             text: root.player_name
-            font_size: '{}'
+            font_size: '22sp'
             bold: True
             color: (1, 1, 1, 1)
-            outline_width: 2
+            outline_width: 2.5
             outline_color: (0, 0, 0, 1)
             size_hint_y: None
             height: self.texture_size[1]
+            halign: 'center'
         
         # Combined "Your Role is: [ROLE]"
         Label:
             text: root.role_text
-            font_size: '{}'
+            font_size: '18sp'
             bold: True
             color: (0.8, 0.5, 0.9, 1)
-            outline_width: 2
+            outline_width: 2.5
             outline_color: (0, 0, 0, 1)
             size_hint_y: None
             height: self.texture_size[1]
-    
-    # Continue Button at absolute bottom
-    Button:
-        text: 'Continue'
-        size_hint: (0.6, 0.08)
-        height: dp(50)
-        pos_hint: {{'center_x': 0.5, 'y': 0.05}}
-        background_normal: ''
-        background_color: (0.2, 0.7, 0.2, 1)
-        font_size: '{}'
-        bold: True
-        on_press: root.dismiss()
-'''.format(CARD_WIDTH, CARD_HEIGHT, MOBILE_FONT_SM, MOBILE_FONT_XS, MOBILE_FONT_XL, MOBILE_FONT_LG, MOBILE_FONT_MD))
+            halign: 'center'
+            
+        Widget:
+            size_hint_y: 0.35
+            
+        # Continue Button at bottom
+        Button:
+            text: 'Continue'
+            size_hint: (0.8, None)
+            height: dp(55)
+            pos_hint: {'center_x': 0.5}
+            background_normal: ''
+            background_color: (0.2, 0.7, 0.2, 1)
+            font_size: '16sp'
+            bold: True
+            on_press: root.dismiss()
+''')
 
 # Custom Widgets
 class PlayerCard(ButtonBehavior, BoxLayout):
@@ -187,28 +192,33 @@ class PrinciplesScreen(ModalView):
         self.build_ui()
         
     def build_ui(self):
-        self.layout = FloatLayout()
-        
-        with self.layout.canvas.before:
+        # Draw background on ModalView canvas, responsive and bound
+        with self.canvas.before:
+            Color(1, 1, 1, 1)
             self.bg = Rectangle(source='assets/principles_bg.jpg', 
                               size=self.size, 
                               pos=self.pos)
-            Color(0, 0, 0, 0)
+            Color(0, 0, 0, 0.65) # Dark overlay for high readability
             self.overlay = Rectangle(size=self.size, pos=self.pos)
+            
+        self.bind(size=self.update_bg, pos=self.update_bg)
         
+        self.layout = FloatLayout()
         content = BoxLayout(orientation='vertical', spacing=dp(15), padding=dp(15))
         
         title = AnimatedLabel(
             text="Game Principles",
-            font_size=MOBILE_FONT_SM ,
+            font_size=MOBILE_FONT_XL,
             bold=True,
             color=(0.9, 0.9, 0.1, 1),
             size_hint_y=None,
-            height=dp(25))
+            height=dp(40),
+            halign='center'
+        )
         title.start_animation()
         
         scroll = ScrollView()
-        content_box = BoxLayout(orientation='vertical', spacing=dp(22), size_hint_y=None)
+        content_box = BoxLayout(orientation='vertical', spacing=dp(18), size_hint_y=None)
         content_box.bind(minimum_height=content_box.setter('height'))
         
         principles = [ 
@@ -228,13 +238,17 @@ class PrinciplesScreen(ModalView):
                 text=principle,
                 font_size=MOBILE_FONT_SM,
                 bold=True,
-                color=(1, 1, 0, 1),
+                color=(1, 1, 0.9, 1),
                 size_hint_y=None,
-                height=dp(60),
+                height=dp(70),
                 halign='left',
-                outline_width=2,
+                valign='middle',
+                outline_width=1.5,
                 outline_color=(0, 0, 0, 1),
-                text_size=(Window.width*0.85, None))
+                size_hint_x=1
+            )
+            # Bind width to text_size to enable responsive text wrapping
+            lbl.bind(width=lambda instance, val: setattr(instance, 'text_size', (val, None)))
             content_box.add_widget(lbl)
             
         scroll.add_widget(content_box)
@@ -242,7 +256,7 @@ class PrinciplesScreen(ModalView):
         btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(10))
         back_btn = Button(
             text="Back",
-            size_hint=(0.5, 0.99),
+            size_hint=(1, 1),
             font_size=MOBILE_FONT_MD,
             bold=True,
             background_normal='',
@@ -258,8 +272,6 @@ class PrinciplesScreen(ModalView):
         self.layout.add_widget(content)
         self.add_widget(self.layout)
         
-        self.bind(size=self.update_bg, pos=self.update_bg)
-        
     def update_bg(self, *args):
         self.bg.size = self.size
         self.bg.pos = self.pos
@@ -271,11 +283,10 @@ class PrinciplesScreen(ModalView):
             self.on_dismiss_callback()
         return super().on_dismiss()
     
-    
 class RoleShowcaseScreen(ModalView):
     def __init__(self, on_dismiss_callback=None, **kwargs):
         super().__init__(**kwargs)
-        self.size_hint = (1,1)
+        self.size_hint = (1, 1)
         self.auto_dismiss = False
         self.on_dismiss_callback = on_dismiss_callback
         self.current_role_index = 0
@@ -284,44 +295,63 @@ class RoleShowcaseScreen(ModalView):
                 'name': 'Thief',
                 'description': '''Works with partner to eliminate citizens & Wins when thieves outnumber the others''',
                 'image': 'assets/thief_icon.png',
-                'bg_color': (0.1, 0.1, 0.1, 0.1)
+                'bg_color': (0.1, 0.1, 0.15, 0.85)
             },
             {
                 'name': 'Angel',
                 'description': '''Protects players from the thieves & Works with citizens to eliminate thieves''',
                 'image': 'assets/angel_icon.png',
-                'bg_color': (0.1, 0.1, 0.1, 0.1)
+                'bg_color': (0.1, 0.1, 0.15, 0.85)
             },
             {
                 'name': 'Citizen',
                 'description': '''Finds and eliminates thieves through voting & Wins when all thieves are eliminated''',
                 'image': 'assets/citizen_icon.png',
-                'bg_color': (0.1, 0.1, 0.1, 0.1)
+                'bg_color': (0.1, 0.1, 0.15, 0.85)
             }
         ]
         self.build_ui()
         self.show_role(0)
         
     def build_ui(self):
-        self.layout = FloatLayout()
-        
-        with self.layout.canvas.before:
+        with self.canvas.before:
+            Color(1, 1, 1, 1)
             self.bg = Rectangle(source='assets/roles_bg.jpg', 
-                             size=self.size, 
-                             pos=self.pos)
-            Color(0, 0, 0, 0)
+                              size=self.size, 
+                              pos=self.pos)
+            Color(0, 0, 0, 0.5)
             self.overlay = Rectangle(pos=self.pos, size=self.size)
+            
+        self.bind(size=self.update_bg, pos=self.update_bg)
+        
+        self.layout = FloatLayout()
         
         self.role_box = BoxLayout(
             orientation='vertical',
-            size_hint=(0.5, 0.5),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5},
-            spacing=dp(10))
+            size_hint=(0.85, 0.65),
+            pos_hint={'center_x': 0.5, 'center_y': 0.55},
+            spacing=dp(15),
+            padding=dp(20))
+            
+        with self.role_box.canvas.before:
+            self.role_color = Color(0.1, 0.1, 0.15, 0.85)
+            self.role_box_bg = RoundedRectangle(
+                pos=self.role_box.pos, 
+                size=self.role_box.size,
+                radius=[15,]
+            )
+            self.role_border_color = Color(0.3, 0.3, 0.5, 1)
+            self.role_box_border = Line(
+                rounded_rectangle=[self.role_box.x, self.role_box.y, self.role_box.width, self.role_box.height, 15],
+                width=1.5
+            )
+            
+        self.role_box.bind(pos=self.update_role_box_bg, size=self.update_role_box_bg)
             
         self.next_btn = Button(
             text="Next",
             size_hint=(0.6, 0.08),
-            pos_hint={'center_x': 0.5, 'center_y': 0.1},
+            pos_hint={'center_x': 0.5, 'center_y': 0.12},
             background_normal='',
             font_size=MOBILE_FONT_MD,
             bold=True,
@@ -333,70 +363,73 @@ class RoleShowcaseScreen(ModalView):
         self.layout.add_widget(self.next_btn)
         self.add_widget(self.layout)
         
-        self.bind(size=self.update_bg, pos=self.update_bg)
-        
     def update_bg(self, *args):
         self.bg.size = self.size
         self.bg.pos = self.pos
         self.overlay.size = self.size
         self.overlay.pos = self.pos
         
+    def update_role_box_bg(self, instance, value):
+        self.role_box_bg.pos = instance.pos
+        self.role_box_bg.size = instance.size
+        self.role_box_border.rounded_rectangle = [
+            instance.x, instance.y, instance.width, instance.height, 15
+        ]
+        
     def show_role(self, index):
         self.role_box.clear_widgets()
         role = self.roles[index]
         
-        with self.role_box.canvas.before:
-            Color(*role['bg_color'])
-            RoundedRectangle(pos=self.role_box.pos, 
-                           size=self.role_box.size,
-                           radius=[10,])
+        # Update colors dynamically
+        self.role_color.rgba = role['bg_color']
         
         title = AnimatedLabel(
-            text=role['name'],
+            text=role['name'].upper(),
             font_size=MOBILE_FONT_XL,
             bold=True,
             color=(0.9, 0.9, 0.1, 1),
             size_hint_y=None,
             outline_width=2,
-            outline_color=(0, 0, 0, 0),
-            height=dp(50))
+            outline_color=(0, 0, 0, 1),
+            height=dp(50),
+            halign='center')
         title.start_animation()
         
         img = Image(
             source=role['image'],
-            size_hint=(1, 0.6),
+            size_hint=(1, 0.55),
             allow_stretch=True,
+            keep_ratio=True,
             opacity=0)
         anim = (Animation(opacity=0, duration=0) + 
-                Animation(opacity=1, duration=2.5, t='out_elastic'))
+                Animation(opacity=1, duration=1.5, t='out_quad'))
         anim.start(img)
         
-        # Create a scroll view for the description
-        scroll = ScrollView(size_hint=(1, 0.4))  # Adjusted size
+        scroll = ScrollView(size_hint=(1, 0.3))
         desc = Label(
             text=role['description'],
-            font_size=MOBILE_FONT_XS,
-            color=(0.9, 0.9, 0.1, 1),
+            font_size=MOBILE_FONT_SM,
+            color=(0.95, 0.95, 0.95, 1),
             size_hint_y=None,
             height=dp(80),
-            text_size=(Window.width*0.85, None),
             halign='center',
-            outline_color=(0,0,0,0),
-            outline_width=2,
+            valign='middle',
+            outline_color=(0,0,0,1),
+            outline_width=1.5,
             bold=False,
             opacity=0)
-        # Bind the label width to scroll view width
-        desc.bind(width=lambda *x: desc.setter('text_size')(desc, (desc.width, None)))
-        Animation(opacity=1, duration=2.5).start(desc)
+        desc.bind(width=lambda instance, val: setattr(instance, 'text_size', (val, None)))
+        Animation(opacity=1, duration=1.5).start(desc)
+        scroll.add_widget(desc)
         
         def show_next_button(dt):
-            Animation(opacity=1, duration=1).start(self.next_btn)
+            Animation(opacity=1, duration=0.5).start(self.next_btn)
             
-        Clock.schedule_once(show_next_button, 2)
+        Clock.schedule_once(show_next_button, 1.2)
             
         self.role_box.add_widget(title)
         self.role_box.add_widget(img)
-        self.role_box.add_widget(desc)
+        self.role_box.add_widget(scroll)
         
     def next_role(self, instance):
         self.current_role_index += 1
@@ -405,13 +438,14 @@ class RoleShowcaseScreen(ModalView):
             if self.on_dismiss_callback:
                 self.on_dismiss_callback()
         else:
+            self.next_btn.opacity = 0
             self.show_role(self.current_role_index)
             
     def on_dismiss(self):
         if self.on_dismiss_callback:
             self.on_dismiss_callback()
         return super().on_dismiss()
-
+    
 class DakatiGame(BoxLayout):
     current_phase = StringProperty("")
     background_default = StringProperty('assets/default_bg.jpg')
@@ -442,72 +476,81 @@ class DakatiGame(BoxLayout):
         self.current_player_viewing = None
         self.eliminated_in_voting = None
         
+        # We bind DakatiGame's size and pos to update background layout
+        self.bind(size=self.update_bg, pos=self.update_bg)
+        
         self.setup_background()
         self.show_welcome_screen()
 
     def setup_background(self, phase=None):
-        """Set up background with proper 9:16 aspect ratio scaling"""
+        """Set up background with proper aspect ratio scaling and zero instruction leaking"""
         if phase is None:
             bg_source = 'assets/default_bg.jpg'
         else:
             bg_source = getattr(self, f'background_{phase.lower()}', 'assets/default_bg.jpg')
 
-        with self.canvas.before:
-            Color(1, 1, 1, 1)
-            self.background = Rectangle(
-                source=bg_source,
-                size=self._calculate_bg_size(Window.size),
-                pos=self._calculate_bg_pos(Window.size)
-            )
+        # Control overlay intensity depending on the game phase
+        overlay_alpha = 0.7 if phase in ["GAMEOVER", "GAME_OVER"] else 0.0
+
+        if not hasattr(self, 'bg_rect'):
+            with self.canvas.before:
+                Color(1, 1, 1, 1)
+                self.bg_rect = Rectangle(
+                    source=bg_source,
+                    size=self._calculate_bg_size(self.size),
+                    pos=self._calculate_bg_pos(self.size)
+                )
+                self.bg_overlay_color = Color(0, 0, 0, overlay_alpha)
+                self.bg_overlay = Rectangle(
+                    size=self.size,
+                    pos=self.pos
+                )
+        else:
+            self.bg_rect.source = bg_source
+            self.bg_rect.size = self._calculate_bg_size(self.size)
+            self.bg_rect.pos = self._calculate_bg_pos(self.size)
+            self.bg_overlay_color.rgba = (0, 0, 0, overlay_alpha)
+            self.bg_overlay.size = self.size
+            self.bg_overlay.pos = self.pos
             
-            
-    def _calculate_bg_size(self, window_size):
-        """Calculate size to maintain 9:16 aspect ratio while covering screen"""
-        window_ratio = window_size[0] / window_size[1]
+    def _calculate_bg_size(self, size):
+        """Calculate size to maintain 9:16 aspect ratio while COVERING the entire screen (no black bars)"""
+        w, h = size
+        if h == 0:
+            return (0, 0)
+        window_ratio = w / h
         target_ratio = 9/16
         
         if window_ratio > target_ratio:
-            # Window is wider than 9:16, scale by height
-            return (window_size[1] * target_ratio, window_size[1])
+            # Viewport is wider, match width
+            return (w, w / target_ratio)
         else:
-            # Window is taller than 9:16, scale by width
-            return (window_size[0], window_size[0] / target_ratio)
+            # Viewport is taller, match height
+            return (h * target_ratio, h)
 
-    def _calculate_bg_pos(self, window_size):
+    def _calculate_bg_pos(self, size):
         """Center the background image"""
-        bg_size = self._calculate_bg_size(window_size)
+        bg_size = self._calculate_bg_size(size)
         return (
-            (window_size[0] - bg_size[0]) / 2,
-            (window_size[1] - bg_size[1]) / 2
+            (size[0] - bg_size[0]) / 2,
+            (size[1] - bg_size[1]) / 2
         )        
 
     def update_bg(self, instance, value):
         """Update background when window size changes"""
-        if hasattr(self, 'background'):
-            self.background.size = self._calculate_bg_size(value)
-            self.background.pos = self._calculate_bg_pos(value)
-        
-        # Update registration background if it exists
-        if hasattr(self, 'reg_bg'):
-            self.reg_bg.size = self._calculate_bg_size(value)
-            self.reg_bg.pos = self._calculate_bg_pos(value)
-        
-        # Update overlay if it exists
-        if hasattr(self, 'overlay'):
-            self.overlay.size = value
-            self.overlay.pos = (0, 0)
+        if hasattr(self, 'bg_rect'):
+            self.bg_rect.size = self._calculate_bg_size(self.size)
+            self.bg_rect.pos = self._calculate_bg_pos(self.size)
+        if hasattr(self, 'bg_overlay'):
+            self.bg_overlay.size = self.size
+            self.bg_overlay.pos = self.pos
 
     def show_welcome_screen(self):
         self.clear_widgets()
 
         self.main_layout = FloatLayout()
 
-        # Remove the background image setup from here since we'll use slideshow as background
-        with self.main_layout.canvas.before:
-            Color(0, 0, 0, 1)  # Black background until slideshow loads
-            self.overlay = Rectangle(size=Window.size, pos=(0, 0))
-
-        # Initialize slideshow images
+        # Slideshow background
         self.slideshow_images = [
             'assets/slide1.jpg',
             'assets/slide2.jpg',
@@ -519,180 +562,159 @@ class DakatiGame(BoxLayout):
         ]
         self.current_slide = 0
 
-        # Create slideshow image widget - full screen background
+        # Create slideshow image widget - full screen background (covers screen)
         self.slideshow = Image(
             source=self.slideshow_images[0],
-            size_hint=(1.1, 1.2),
+            size_hint=(1, 1),
             pos_hint={'center_x': 0.5, 'center_y': 0.5},
-            allow_stretch=True,
-            keep_ratio=True
-        )
-        self.main_layout.add_widget(self.slideshow)
-
-        # Start slideshow immediately with first slide properly sized
-        def start_slideshow(dt):
-            def change_slide(dt):
-                next_slide = (self.current_slide + 1) % len(self.slideshow_images)
-
-                # Fade out current slide
-                anim_out = Animation(opacity=0, duration=0.5)
-                anim_out.start(self.slideshow)
-
-                # After fade out, change image and fade in
-                def update_and_fade_in(dt):
-                    self.slideshow.source = self.slideshow_images[next_slide]
-                    anim_in = Animation(opacity=1, duration=0.5)
-                    anim_in.start(self.slideshow)
-                    self.current_slide = next_slide
-
-                Clock.schedule_once(update_and_fade_in, 0.5)
-
-            # Start slideshow with 5 second interval between slides
-            self.slideshow_event = Clock.schedule_interval(change_slide, 5)
-
-        # Start slideshow immediately
-        Clock.schedule_once(start_slideshow, 0)
-
-        # Principles Button
-        self.principles_btn = Button(
-            text="Read Principles",
-            size_hint=(0.6, 0.06),
-            pos_hint={'center_x': 0.5, 'center_y': 0.12},
-            background_normal='',
-            bold=True,
-            background_color=(0.2, 0.4, 0.8, 1),
-            font_size=MOBILE_FONT_MD,
-            opacity=0
-        )
-
-        # Start Game Button
-        self.start_btn = Button(
-            text="START GAME",
-            size_hint=(0.6, 0.06),
-            pos_hint={'center_x': 0.5, 'center_y': 0.05},
-            background_normal='',
-            background_color=(0.8, 0.2, 0.2, 1),
-            font_size=MOBILE_FONT_MD,
-            bold=True,
-            opacity=0
-        )
-
-        # Add widgets to layout
-        self.main_layout.add_widget(self.principles_btn)
-        self.main_layout.add_widget(self.start_btn)
-        self.add_widget(self.main_layout)
-
-        # Animate buttons appearing
-        Animation(opacity=1, duration=2).start(self.principles_btn)
-
-        def show_start_btn(dt):
-            Animation(opacity=1, duration=2).start(self.start_btn)
-
-        Clock.schedule_once(show_start_btn, 1)
-
-        # Bind button events
-        self.principles_btn.bind(on_press=self.show_principles_screen)
-        self.start_btn.bind(on_press=self.show_role_intro)
-
-        # Update on window resize
-        def update_bg_size(instance, value):
-            self.slideshow.size = Window.size
-
-        Window.bind(size=update_bg_size)
-
-
-
-
-
-            
-    def start_slideshow(self):
-        """Initialize slideshow with proper 9:16 aspect ratio images"""
-        self.slideshow = Image(
-            source=self.slideshow_images[0],
-            size_hint=(None, None),
-            size=self._calculate_slideshow_size(),
-            pos_hint={'center_x': 0.5, 'center_y': 0.55},
             allow_stretch=True,
             keep_ratio=False
         )
         self.main_layout.add_widget(self.slideshow)
 
-        def change_slide(dt):
-            next_slide = (self.current_slide + 1) % len(self.slideshow_images)
-            anim = Animation(opacity=0, duration=0.5) + Animation(opacity=1, duration=0.5)
-            anim.start(self.slideshow)
-            
-            def update_source(dt):
-                self.slideshow.source = self.slideshow_images[next_slide]
-                self.slideshow.size = self._calculate_slideshow_size()
-            Clock.schedule_once(update_source, 0.5)
-            
-            self.current_slide = next_slide
+        # Start slideshow immediately
+        def start_slideshow(dt):
+            def change_slide(dt):
+                next_slide = (self.current_slide + 1) % len(self.slideshow_images)
 
-        self.slideshow_event = Clock.schedule_interval(change_slide, 5)
+                # Fade out current slide
+                anim_out = Animation(opacity=0, duration=0.6)
+                anim_out.start(self.slideshow)
+
+                def update_and_fade_in(dt):
+                    self.slideshow.source = self.slideshow_images[next_slide]
+                    anim_in = Animation(opacity=1, duration=0.6)
+                    anim_in.start(self.slideshow)
+                    self.current_slide = next_slide
+
+                Clock.schedule_once(update_and_fade_in, 0.6)
+
+            self.slideshow_event = Clock.schedule_interval(change_slide, 5)
+
+        Clock.schedule_once(start_slideshow, 0)
+
+        # Prominent stylized Game Title
+        title_label = Label(
+            text="DAKATI\n[color=ffd700]THE THIEF GAME[/color]",
+            markup=True,
+            font_size='38sp',
+            bold=True,
+            halign='center',
+            valign='middle',
+            size_hint=(0.9, 0.25),
+            pos_hint={'center_x': 0.5, 'center_y': 0.72},
+            outline_width=2.5,
+            outline_color=(0, 0, 0, 1),
+            opacity=0
+        )
+        self.main_layout.add_widget(title_label)
+        Animation(opacity=1, y=Window.height * 0.65, duration=1.5, t='out_quad').start(title_label)
+
+        # Button card layout for glassmorphism grouping
+        button_container = BoxLayout(
+            orientation='vertical',
+            spacing=dp(15),
+            padding=dp(20),
+            size_hint=(0.8, 0.22),
+            pos_hint={'center_x': 0.5, 'center_y': 0.25},
+            opacity=0
+        )
         
+        with button_container.canvas.before:
+            Color(0.08, 0.08, 0.15, 0.65) # Sleek semi-transparent card background
+            self.welcome_card_bg = RoundedRectangle(
+                pos=button_container.pos,
+                size=button_container.size,
+                radius=[16,]
+            )
+            Color(0.3, 0.3, 0.5, 0.8)
+            self.welcome_card_border = Line(
+                rounded_rectangle=[button_container.x, button_container.y, button_container.width, button_container.height, 16],
+                width=1.2
+            )
+            
+        button_container.bind(pos=self._update_welcome_card, size=self._update_welcome_card)
+
+        # Principles Button
+        self.principles_btn = Button(
+            text="Read Principles",
+            size_hint=(1, 0.45),
+            background_normal='',
+            bold=True,
+            background_color=(0.15, 0.35, 0.75, 1),
+            font_size=MOBILE_FONT_MD
+        )
+
+        # Start Game Button
+        self.start_btn = Button(
+            text="START GAME",
+            size_hint=(1, 0.45),
+            background_normal='',
+            background_color=(0.75, 0.15, 0.15, 1),
+            font_size=MOBILE_FONT_MD,
+            bold=True
+        )
         
-    def _calculate_slideshow_size(self):
-        """Calculate slideshow size maintaining 9:16 ratio but fitting within screen"""
-        window_width, window_height = Window.size
-        max_width = window_width * 1
-        max_height = window_height * 2.3
-        target_ratio = 9/16
-        
-        # Calculate which dimension limits the size
-        if max_width / max_height > target_ratio:
-            # Height is limiting
-            return (max_height * target_ratio, max_height)
-        else:
-            # Width is limiting
-            return (max_width, max_width / target_ratio)
-    
-    
+        button_container.add_widget(self.principles_btn)
+        button_container.add_widget(self.start_btn)
+        self.main_layout.add_widget(button_container)
+
+        # Animate button container appearing
+        Animation(opacity=1, duration=1.2).start(button_container)
+
+        # Bind button events
+        self.principles_btn.bind(on_press=self.show_principles_screen)
+        self.start_btn.bind(on_press=self.show_role_intro)
+
+        self.add_widget(self.main_layout)
+
+    def _update_welcome_card(self, instance, value):
+        self.welcome_card_bg.pos = instance.pos
+        self.welcome_card_bg.size = instance.size
+        self.welcome_card_border.rounded_rectangle = [
+            instance.x, instance.y, instance.width, instance.height, 16
+        ]
+
     def show_principles_screen(self, instance):
-        anim = Animation(x=-Window.width, duration=1, t='out_quad')
+        if hasattr(self, 'slideshow_event'):
+            self.slideshow_event.cancel()
+        anim = Animation(x=-Window.width, duration=0.6, t='out_quad')
         anim.start(self.main_layout)
         
         def show_principles(dt):
             self.principles_screen = PrinciplesScreen(on_dismiss_callback=self.on_principles_dismiss)
             self.principles_screen.open()
-        Clock.schedule_once(show_principles, 0.7)
+        Clock.schedule_once(show_principles, 0.4)
         
     def on_principles_dismiss(self):
         self.main_layout.x = Window.width
-        anim = Animation(x=0, duration=1.5, t='out_quad')
+        anim = Animation(x=0, duration=0.8, t='out_quad')
         anim.start(self.main_layout)
-        self.start_slideshow()
+        self.show_welcome_screen()
         
     def show_role_intro(self, instance):
         if hasattr(self, 'slideshow_event'):
             self.slideshow_event.cancel()
-        anim = Animation(y=-Window.height, duration=0.7, t='out_quad')
+        anim = Animation(y=-Window.height, duration=0.5, t='out_quad')
         anim.start(self.main_layout)
         
         def show_roles(dt):
             self.role_screen = RoleShowcaseScreen(on_dismiss_callback=self.start_registration)
             self.role_screen.open()
         
-        Clock.schedule_once(show_roles, 0.8)
+        Clock.schedule_once(show_roles, 0.4)
         
     def start_registration(self, instance=None):
         self.setup_background("registration")
         self.clear_widgets()
         self.current_phase = "REGISTRATION"
 
-        with self.canvas.before:
-            Color(1, 1, 1, 1)
-            self.reg_bg = Rectangle(source='assets/register_bg.jpg', 
-                                  size=Window.size, 
-                                  pos=self.pos)
-            Color(0, 0, 0, 0)
-            self.reg_overlay = Rectangle(size=Window.size, pos=self.pos)
-
-        header = BoxLayout(orientation='vertical', size_hint=(1, 0.15))
+        header = BoxLayout(orientation='vertical', size_hint=(1, 0.15), spacing=dp(5))
 
         title = Label(
             text="PLAYER REGISTRATION",
             font_size=MOBILE_FONT_XL,
+            bold=True,
             color=(0.9, 0.9, 0.1, 1),
             outline_width=2,
             outline_color=(0, 0, 0, 1),
@@ -701,17 +723,12 @@ class DakatiGame(BoxLayout):
         )
         header.add_widget(title)
 
-        """anim = (Animation(font_size=dp(24), color=(1, 1, 0.5, 1), duration=1.5, t='out_quad') + 
-                Animation(font_size=MOBILE_FONT_XL, color=(0.9, 0.9, 0.1, 1), duration=1.5, t='out_quad'))
-        anim.repeat = True
-        anim.start(title)"""
-
         instruction = Label(
-            text="Enter names for all 8 players:",
-            font_size=MOBILE_FONT_MD,
+            text="Enter names for all 8 players (must contain a number):",
+            font_size=MOBILE_FONT_SM,
             bold=True,
-            color=(0.9, 0.9, 0.9, 1),
-            outline_width=2,
+            color=(0.95, 0.95, 0.95, 1),
+            outline_width=1.5,
             outline_color=(0, 0, 0, 1),
             size_hint_y=None,
             height=dp(30)
@@ -730,20 +747,22 @@ class DakatiGame(BoxLayout):
         for i in range(8):
             input_box = BoxLayout(orientation='horizontal', 
                                  size_hint_y=None, 
-                                 height=dp(50),
-                                 spacing=dp(5))
+                                 height=dp(48),
+                                 spacing=dp(8))
 
             num_box = BoxLayout(orientation='horizontal',
-                              size_hint=(0.3, 1))
+                              size_hint=(0.3, 1),
+                              spacing=dp(4))
             num_box.add_widget(Image(source=f'assets/player_{i+1}.png',
                                   size_hint=(0.4, 1),
-                                  allow_stretch=True))
+                                  allow_stretch=True,
+                                  keep_ratio=True))
             num_box.add_widget(Label(
-                text=f"Player {i+1}:",
+                text=f"P{i+1}:",
                 font_size=MOBILE_FONT_SM,
                 bold=True,
                 color=(0.9, 0.9, 0.9, 1),
-                outline_width=2,
+                outline_width=1.5,
                 outline_color=(0, 0, 0, 1),
                 size_hint=(0.6, 1))
             )
@@ -752,13 +771,13 @@ class DakatiGame(BoxLayout):
                 multiline=False,
                 size_hint=(0.7, 1),
                 background_normal='',
-                background_color=(0.15, 0.15, 0.25, 0.8),
+                background_color=(0.08, 0.08, 0.15, 0.8),
                 foreground_color=(1, 1, 1, 1),
-                hint_text_color=(0.9, 0.9, 1, 1),
+                hint_text_color=(0.6, 0.6, 0.7, 1),
                 cursor_color=(1, 1, 1, 1),
                 font_size=MOBILE_FONT_SM,
                 hint_text=f"Name {i+1}",
-                padding=dp(5)
+                padding=[dp(10), dp(12), dp(10), dp(12)]
             )
             self.player_inputs.append(player_input)
             input_box.add_widget(num_box)
@@ -770,11 +789,11 @@ class DakatiGame(BoxLayout):
 
         submit_btn = Button(
             text="CONFIRM PLAYERS",
-            size_hint=(0.8, None),
+            size_hint=(0.85, None),
             height=dp(50),
             pos_hint={'center_x': 0.5},
             background_normal='',
-            background_color=(0.2, 0.4, 0.8, 1),
+            background_color=(0.15, 0.55, 0.15, 1),
             font_size=MOBILE_FONT_MD,
             bold=True
         )
@@ -831,14 +850,7 @@ class DakatiGame(BoxLayout):
 
     def show_role_reveal_screen(self):
         self.clear_widgets()
-        
-        with self.canvas.before:
-            Color(1, 1, 1, 1)
-            self.background = Rectangle(
-                source='assets/role_reveal_bg.jpg',
-                size=Window.size,
-                pos=self.pos
-            )
+        self.setup_background("role_reveal")
         
         self.current_phase = "ROLE_REVEAL"
         self.current_player_index = 0
@@ -861,7 +873,7 @@ class DakatiGame(BoxLayout):
     
     def next_role_reveal(self):
         self.current_player_index += 1
-        Clock.schedule_once(lambda dt: self.update_role_reveal(), 0.5)
+        Clock.schedule_once(lambda dt: self.update_role_reveal(), 0.4)
 
     def start_game_loop(self):
         self.current_phase = "GAME_LOOP"
@@ -877,12 +889,6 @@ class DakatiGame(BoxLayout):
         self.current_voter_index = 0
         self.update_voting_screen()
         
-        
-        
-        
-        
-        
-    
     def update_voting_screen(self):
         if self.current_voter_index >= len(self.alive_players):
             self.process_votes()
@@ -894,17 +900,17 @@ class DakatiGame(BoxLayout):
         self.clear_widgets()
 
         # Header with phase information
-        header = BoxLayout(orientation='vertical', size_hint=(1, 0.15))
+        header = BoxLayout(orientation='vertical', size_hint=(1, 0.14), spacing=dp(2))
         phase_label = Label(
             text=f"Round {self.round_number}: Voting Phase",
             font_size=MOBILE_FONT_LG,
             bold=True,
             color=(0.9, 0.9, 0.1, 1),
             outline_width=2,
-            outline_color=(0, 0, 0, 0)
+            outline_color=(0, 0, 0, 1)
         )
-        anim = Animation(color=(1, 1, 0.5, 1), duration=0.5) + \
-               Animation(color=(0.9, 0.9, 0.1, 1), duration=0.5)
+        anim = Animation(color=(1, 1, 0.6, 1), duration=0.6) + \
+               Animation(color=(0.9, 0.9, 0.1, 1), duration=0.6)
         anim.repeat = True
         anim.start(phase_label)
 
@@ -912,36 +918,54 @@ class DakatiGame(BoxLayout):
             text=f"{voter}, vote to eliminate:",
             font_size=MOBILE_FONT_MD,
             bold=True,
-            color=(0.9, 0.9, 0.1, 1),
-            outline_width=2,
+            color=(0.95, 0.95, 0.95, 1),
+            outline_width=1.5,
             outline_color=(0, 0, 0, 1)
         )
         header.add_widget(phase_label)
         header.add_widget(instruction)
 
         # Circular layout container
-        circle_container = FloatLayout(size_hint=(1, 0.8))
+        circle_container = FloatLayout(size_hint=(1, 0.72))
 
         # Get available voting options
         options = [p for p in self.alive_players if p != voter]
         if role_data['role'] == 'Thief':
             options = [p for p in options if p not in role_data['known_thieves']]
 
-        # Circle parameters - increased radius and adjusted positioning
-        center_x = Window.width / 2
-        center_y = Window.height * 0.5  # More centered position
-        radius = min(Window.width, Window.height) * 0.35  # Increased radius for better spacing
+        cards = []
+        for player in options:
+            card = PlayerCard()
+            card.player_name = player
+            card.role = self.players[player]['role']
+            card.role_icon = 'assets/question_mark.png'
+            card.alive = self.players[player]['alive']
+            card.show_role = False
+            card.size_hint = (None, None)
+            
+            # Adjust image size inside card
+            card.ids.image.size_hint = (0.9, 0.55)
+            card.ids.image.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
 
-        # Calculate dynamic card size based on number of options
-        num_options = len(options)
-        if num_options > 0:
-            # Adjust card size based on number of options
-            base_card_width = dp(70)
-            base_card_height = dp(100)
+            card.bind(on_release=lambda x, p=player: self.record_vote(voter, p))
+            circle_container.add_widget(card)
+            cards.append(card)
 
-            # Scale down cards if there are many options
+        # Dynamic positioning logic bound to layout resizing
+        def layout_cards(instance, value):
+            num_options = len(cards)
+            if num_options == 0:
+                return
+
+            center_x = instance.width / 2
+            center_y = instance.height / 2
+            radius = min(instance.width, instance.height) * 0.36
+
+            base_card_width = dp(65)
+            base_card_height = dp(95)
+
             if num_options > 5:
-                scale_factor = 0.9 - (min(num_options, 8) - 5) * 0.1
+                scale_factor = 0.9 - (min(num_options, 8) - 5) * 0.08
                 card_width = base_card_width * scale_factor
                 card_height = base_card_height * scale_factor
             else:
@@ -950,52 +974,22 @@ class DakatiGame(BoxLayout):
 
             angle_step = 360 / num_options
 
-            # Add cards in circular arrangement with proper spacing
-            for i, player in enumerate(options):
-                angle = math.radians(i * angle_step)
+            for idx, card_widget in enumerate(cards):
+                angle = math.radians(idx * angle_step)
                 x = center_x + radius * math.cos(angle) - card_width/2
                 y = center_y + radius * math.sin(angle) - card_height/2
+                
+                card_widget.size = (card_width, card_height)
+                card_widget.pos = (instance.x + x, instance.y + y)
 
-                card = PlayerCard()
-                card.player_name = player
-                card.role = self.players[player]['role']
-                card.role_icon = 'assets/question_mark.png'
-                card.alive = self.players[player]['alive']
-                card.show_role = False
-                card.size_hint = (None, None)
-                card.size = (card_width, card_height)
-                card.pos = (x, y)
-
-                # Adjust image size inside card
-                card.ids.image.size_hint = (0.8, 0.5)
-                card.ids.image.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
-
-                card.bind(on_release=lambda x, p=player: self.record_vote(voter, p))
-                circle_container.add_widget(card)
+        circle_container.bind(size=layout_cards, pos=layout_cards)
+        Clock.schedule_once(lambda dt: layout_cards(circle_container, None), 0)
 
         status_box = self.create_status_box()
 
         self.add_widget(header)
         self.add_widget(circle_container)
         self.add_widget(status_box)
-
-
-
-
-
-
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
 
     def record_vote(self, voter, target):
         self.current_votes[target] += 1
@@ -1017,13 +1011,13 @@ class DakatiGame(BoxLayout):
 
         role = self.players[eliminated]['role']
         if role == 'Citizen':
-            message = "Masoom citizen mar gaya"
+            message = "Masoom citizen mar gaya!"
             image = 'assets/eliminated.png'
         elif role == 'Thief':
-            message = "Ek chor pakda gaya"
+            message = "Ek chor pakda gaya!"
             image = 'assets/thief_died.png'
         else:
-            message = "Angel bhi mar gaya"
+            message = "Angel bhi mar gaya!"
             image = 'assets/angel_died.png'
 
         self.show_popup(
@@ -1032,8 +1026,6 @@ class DakatiGame(BoxLayout):
             self.show_thieves_phase,
             image
         )
-        
-        
         
     def show_thieves_phase(self):
         self.setup_background("thieves")
@@ -1049,7 +1041,7 @@ class DakatiGame(BoxLayout):
         self.thieves_target = None
         self.clear_widgets()
 
-        header = BoxLayout(orientation='vertical', size_hint=(1, 0.15))
+        header = BoxLayout(orientation='vertical', size_hint=(1, 0.14))
         phase_label = Label(
             text="Thieves' Phase",
             font_size=MOBILE_FONT_LG,
@@ -1057,17 +1049,17 @@ class DakatiGame(BoxLayout):
             outline_width=2,
             outline_color=(0, 0, 0, 1)
         )
-        anim = Animation(color=(1, 0.3, 0.3, 1), duration=0.5) + \
-               Animation(color=(0.9, 0.2, 0.2, 1), duration=0.5)
+        anim = Animation(color=(1, 0.4, 0.4, 1), duration=0.6) + \
+               Animation(color=(0.9, 0.2, 0.2, 1), duration=0.6)
         anim.repeat = True
         anim.start(phase_label)
 
         instruction = Label(
             text=f"Thieves {' & '.join(thieves)}, choose a target to kill 🎯",
-            font_size=MOBILE_FONT_MD,
-            outline_color=(0,0,0,0),
-            outline_width=2,
-            color=(0.8, 0.8, 0.8, 1)
+            font_size=MOBILE_FONT_SM,
+            outline_color=(0,0,0,1),
+            outline_width=1.5,
+            color=(0.9, 0.9, 0.9, 1)
         )
         header.add_widget(phase_label)
         header.add_widget(instruction)
@@ -1075,20 +1067,34 @@ class DakatiGame(BoxLayout):
         targets = [name for name, data in self.players.items() 
                   if data['alive'] and data['role'] != 'Thief']
 
-        # Calculate number of columns based on screen width
-        num_columns = max(3, min(4, int(Window.width / (CARD_WIDTH + dp(20)))))
-
-        grid = GridLayout(
-            cols=num_columns,
-            spacing=dp(15),
-            padding=[dp(20), dp(10), dp(20), dp(10)],  # Equal padding left/right
-            size_hint=(1, 0.7),
+        # Center the grid in a scroll view
+        scroll = ScrollView(
+            size_hint=(1, 0.72),
             pos_hint={'center_x': 0.5}
         )
 
-        # Adjust card size for grid
-        grid_card_width = (Window.width - dp(40)) / num_columns - dp(15)  # Account for padding and spacing
-        grid_card_height = grid_card_width * 1.4  # Maintain aspect ratio
+        grid = GridLayout(
+            spacing=dp(12),
+            padding=dp(15),
+            size_hint_y=None
+        )
+        grid.bind(minimum_height=grid.setter('height'))
+        scroll.add_widget(grid)
+
+        # Dynamic layout adaptation for grid elements
+        def adjust_grid(instance, value):
+            col_width = CARD_WIDTH + dp(18)
+            cols = max(3, int(instance.width / col_width))
+            grid.cols = cols
+            
+            grid_card_width = (instance.width - dp(30) - (cols - 1) * grid.spacing[0]) / cols
+            grid_card_height = grid_card_width * 1.45
+            
+            for child in grid.children:
+                if isinstance(child, PlayerCard):
+                    child.size = (grid_card_width, grid_card_height)
+
+        scroll.bind(size=adjust_grid)
 
         for player in targets:
             card = PlayerCard()
@@ -1098,16 +1104,10 @@ class DakatiGame(BoxLayout):
             card.alive = self.players[player]['alive']
             card.show_role = False
             card.size_hint = (None, None)
-            card.size = (grid_card_width, grid_card_height)
             card.bind(on_card_pressed=lambda instance, p=player: self.set_thieves_target(p))
             grid.add_widget(card)
 
-        # Center the grid in a scroll view
-        scroll = ScrollView(
-            size_hint=(1, 0.7),
-            pos_hint={'center_x': 0.5}
-        )
-        scroll.add_widget(grid)
+        Clock.schedule_once(lambda dt: adjust_grid(scroll, None), 0)
 
         status_box = self.create_status_box()
 
@@ -1115,46 +1115,15 @@ class DakatiGame(BoxLayout):
         self.add_widget(scroll)
         self.add_widget(status_box)    
 
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     def set_thieves_target(self, target):
-        debug_popup = Popup(title='Thieves Target',
-                           size_hint=(0.8, 0.5))
-
-        content = BoxLayout(orientation='vertical')
-        debug_label = Label(text=f"Thieves selected: {target}",
-                           font_size=MOBILE_FONT_MD,
-                           color=(1, 1, 1, 1),
-                           bold=True)
-
-        close_btn = Button(text='Close', size_hint=(1, 0.2))
-        close_btn.bind(on_press=debug_popup.dismiss)
-
-        content.add_widget(debug_label)
-        content.add_widget(close_btn)
-        debug_popup.content = content
-        debug_popup.open()
-
         print(f"Thieves selected: {target}")
         self.thieves_target = target
-        self.show_angel_phase()
-
-
-
+        
+        self.show_popup(
+            "Target Locked",
+            f"Thieves have selected a target to eliminate.",
+            self.show_angel_phase
+        )
 
     def show_angel_phase(self):
         self.setup_background("angel")
@@ -1170,7 +1139,7 @@ class DakatiGame(BoxLayout):
         self.angel_choice = None
         self.clear_widgets()
         
-        header = BoxLayout(orientation='vertical', size_hint=(1, 0.15))
+        header = BoxLayout(orientation='vertical', size_hint=(1, 0.14))
         phase_label = Label(
             text="Angel's Phase",
             font_size=MOBILE_FONT_LG,
@@ -1178,16 +1147,16 @@ class DakatiGame(BoxLayout):
             outline_width=2,
             outline_color=(0, 0, 0, 1)
         )
-        anim = Animation(color=(0.5, 0.5, 1, 1), duration=0.5) + \
-               Animation(color=(0.4, 0.4, 0.9, 1), duration=0.5)
+        anim = Animation(color=(0.5, 0.5, 1, 1), duration=0.6) + \
+               Animation(color=(0.4, 0.4, 0.9, 1), duration=0.6)
         anim.repeat = True
         anim.start(phase_label)
         
         instruction = Label(
             text=f"Angel {angel}, choose someone to save:",
-            font_size=MOBILE_FONT_MD,
-            outline_color=(0,0,0,0),
-            outline_width=2,
+            font_size=MOBILE_FONT_SM,
+            outline_color=(0,0,0,1),
+            outline_width=1.5,
             bold=True,
             color=(0.9, 0.9, 0.1, 1)
         )
@@ -1196,21 +1165,34 @@ class DakatiGame(BoxLayout):
         
         targets = [name for name, data in self.players.items() if data['alive']]
         
-        # Calculate number of columns based on screen width
-        num_columns = max(3, min(4, int(Window.width / (CARD_WIDTH + dp(20)))))
-        
-        grid = GridLayout(
-            cols=num_columns,
-            spacing=dp(15),
-            padding=[dp(20), dp(10), dp(20), dp(10)],  # Equal padding left/right
-            size_hint=(1, 0.7),
+        # Center the grid in a scroll view
+        scroll = ScrollView(
+            size_hint=(1, 0.72),
             pos_hint={'center_x': 0.5}
         )
         
-        # Adjust card size for grid
-        grid_card_width = (Window.width - dp(40)) / num_columns - dp(15)  # Account for padding and spacing
-        grid_card_height = grid_card_width * 1.4  # Maintain aspect ratio
-        
+        grid = GridLayout(
+            spacing=dp(12),
+            padding=dp(15),
+            size_hint_y=None
+        )
+        grid.bind(minimum_height=grid.setter('height'))
+        scroll.add_widget(grid)
+
+        def adjust_grid_angel(instance, value):
+            col_width = CARD_WIDTH + dp(18)
+            cols = max(3, int(instance.width / col_width))
+            grid.cols = cols
+            
+            grid_card_width = (instance.width - dp(30) - (cols - 1) * grid.spacing[0]) / cols
+            grid_card_height = grid_card_width * 1.45
+            
+            for child in grid.children:
+                if isinstance(child, PlayerCard):
+                    child.size = (grid_card_width, grid_card_height)
+
+        scroll.bind(size=adjust_grid_angel)
+
         for player in targets:
             card = PlayerCard()
             card.player_name = player
@@ -1219,16 +1201,10 @@ class DakatiGame(BoxLayout):
             card.alive = self.players[player]['alive']
             card.show_role = False
             card.size_hint = (None, None)
-            card.size = (grid_card_width, grid_card_height)
             card.bind(on_card_pressed=lambda instance, p=player: self.set_angel_choice(p))
             grid.add_widget(card)
         
-        # Center the grid in a scroll view
-        scroll = ScrollView(
-            size_hint=(1, 0.7),
-            pos_hint={'center_x': 0.5}
-        )
-        scroll.add_widget(grid)
+        Clock.schedule_once(lambda dt: adjust_grid_angel(scroll, None), 0)
         
         status_box = self.create_status_box()
         
@@ -1236,38 +1212,11 @@ class DakatiGame(BoxLayout):
         self.add_widget(scroll)
         self.add_widget(status_box)
 
-
-
-    
-    
-    
-    
-    
-    
-
     def update_alive_players(self):
         self.alive_players = [name for name, data in self.players.items() if data['alive']]
         self.eliminated_players = [name for name, data in self.players.items() if not data['alive']]  
 
     def set_angel_choice(self, target):
-        debug_popup = Popup(title='Angel Choice',
-                          size_hint=(0.8, 0.5))
-
-        debug_content = BoxLayout(orientation='vertical')
-        debug_label = Label(
-            text=f"Angel chose: {target}\nThieves target: {self.thieves_target}",
-            font_size=MOBILE_FONT_MD,
-            color=(1, 1, 1, 1),
-            bold=True
-        )
-        close_btn = Button(text='Close', size_hint=(1, 0.2))
-        close_btn.bind(on_press=debug_popup.dismiss)
-
-        debug_content.add_widget(debug_label)
-        debug_content.add_widget(close_btn)
-        debug_popup.content = debug_content
-        debug_popup.open()
-
         self.angel_choice = target
         target_role = self.players[self.thieves_target]['role']
         image = None
@@ -1293,23 +1242,23 @@ class DakatiGame(BoxLayout):
         self.show_popup("Angel's Decision", message, self.show_round_results, image)
 
     def create_status_box(self):
-        status_box = BoxLayout(orientation='horizontal', size_hint=(1, 0.15))
+        status_box = BoxLayout(orientation='horizontal', size_hint=(1, 0.14))
         
         alive_box = BoxLayout(orientation='vertical', size_hint=(0.5, 1))
         alive_box.add_widget(Label(
             text="Alive Players:",
             font_size=MOBILE_FONT_SM,
             bold=True,
-            outline_color=(0,0,0,0),
-            outline_width=2,
+            outline_color=(0,0,0,1),
+            outline_width=1.5,
             color=(0.2, 0.8, 0.2, 1)
         ))
         alive_box.add_widget(Label(
             text=", ".join(self.alive_players),
             font_size=MOBILE_FONT_XS,
             bold=False,
-            outline_color=(0,0,0,0),
-            outline_width=2,
+            outline_color=(0,0,0,1),
+            outline_width=1.0,
             color=(1, 1, 1, 1)
         ))
         
@@ -1318,17 +1267,17 @@ class DakatiGame(BoxLayout):
             text="Eliminated Players:",
             font_size=MOBILE_FONT_SM,
             bold=True,
-            outline_color=(0,0,0,0),
-            outline_width=2,
+            outline_color=(0,0,0,1),
+            outline_width=1.5,
             color=(0.8, 0.2, 0.2, 1)
         ))
         eliminated_box.add_widget(Label(
             text=", ".join(self.eliminated_players) if self.eliminated_players else 'None',
             font_size=MOBILE_FONT_XS,
             bold=False,
-            outline_color=(0,0,0,0),
-            outline_width=2,
-            color=(0.8, 0.8, 0.8, 1)
+            outline_color=(0,0,0,1),
+            outline_width=1.0,
+            color=(0.85, 0.85, 0.85, 1)
         ))
         
         status_box.add_widget(alive_box)
@@ -1340,7 +1289,7 @@ class DakatiGame(BoxLayout):
         self.clear_widgets()
         self.current_phase = "RESULTS"
         
-        header = BoxLayout(orientation='vertical', size_hint=(1, 0.15))
+        header = BoxLayout(orientation='vertical', size_hint=(1, 0.14))
         phase_label = Label(
             text=f"Round {self.round_number} Results",
             font_size=MOBILE_FONT_LG,
@@ -1349,13 +1298,13 @@ class DakatiGame(BoxLayout):
             outline_width=2,
             outline_color=(0, 0, 0, 1)
         )
-        anim = Animation(color=(1, 1, 0.5, 1), duration=0.5) + \
-               Animation(color=(0.9, 0.9, 0.1, 1), duration=0.5)
+        anim = Animation(color=(1, 1, 0.6, 1), duration=0.6) + \
+               Animation(color=(0.9, 0.9, 0.1, 1), duration=0.6)
         anim.repeat = True
         anim.start(phase_label)
         header.add_widget(phase_label)
         
-        results_box = BoxLayout(orientation='vertical', size_hint=(1, 0.7))
+        results_box = BoxLayout(orientation='vertical', size_hint=(1, 0.58))
         
         if self.eliminated_in_voting:
             eliminated_card = PlayerCard()
@@ -1365,11 +1314,11 @@ class DakatiGame(BoxLayout):
             eliminated_card.alive = False
             eliminated_card.show_role = True
             eliminated_card.size_hint = (None, None)
-            eliminated_card.size = (dp(150), dp(200))
+            eliminated_card.size = (dp(140), dp(190))
             eliminated_card.pos_hint = {'center_x': 0.5}
             
-            anim = Animation(opacity=0, duration=1.5) + Animation(opacity=1, duration=0)
-            anim.start(eliminated_card)
+            anim_fade = Animation(opacity=0, duration=0) + Animation(opacity=1, duration=1.2)
+            anim_fade.start(eliminated_card)
             
             results_box.add_widget(eliminated_card)
         
@@ -1377,11 +1326,11 @@ class DakatiGame(BoxLayout):
         
         continue_btn = Button(
             text="CONTINUE TO NEXT ROUND",
-            size_hint=(0.8, None),
-            size=(dp(300), dp(50)),
+            size_hint=(0.85, None),
+            height=dp(50),
             pos_hint={'center_x': 0.5},
             background_normal='',
-            background_color=(0.2, 0.6, 0.2, 1),
+            background_color=(0.15, 0.55, 0.15, 1),
             font_size=MOBILE_FONT_MD,
             bold=True
         )
@@ -1411,11 +1360,7 @@ class DakatiGame(BoxLayout):
         self.clear_widgets()
         self.current_phase = "GAME_OVER"
         
-        with self.canvas.before:
-            Color(0, 0, 0, 0.7)
-            Rectangle(size=Window.size, pos=self.pos)
-        
-        main_layout = BoxLayout(orientation='vertical', spacing=dp(10))
+        main_layout = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(12))
         
         header = Label(
             text="GAME OVER",
@@ -1423,22 +1368,23 @@ class DakatiGame(BoxLayout):
             color=(0.9, 0.2, 0.2, 1),
             outline_width=3,
             outline_color=(0, 0, 0, 1),
-            size_hint=(1, 0.2)
+            size_hint=(1, 0.15)
         )
         
         result_msg = Label(
             text=message,
             font_size=MOBILE_FONT_LG,
-            outline_color=(0,0,0,0),
+            outline_color=(0,0,0,1),
             outline_width=2,
             color=(0.9, 0.9, 0.1, 1),
-            size_hint=(1, 0.1)
+            size_hint=(1, 0.12),
+            halign='center'
         )
         
         roles_box = GridLayout(
             cols=1,
-            spacing=dp(5),
-            padding=dp(10),
+            spacing=dp(6),
+            padding=dp(8),
             size_hint_y=None
         )
         roles_box.bind(minimum_height=roles_box.setter('height'))
@@ -1447,30 +1393,35 @@ class DakatiGame(BoxLayout):
             status = "ALIVE" if data['alive'] else "ELIMINATED"
             color = (0.2, 0.8, 0.2, 1) if data['alive'] else (0.8, 0.2, 0.2, 1)
             
-            player_card = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(40))
+            player_card = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(42), spacing=dp(8))
             
             player_label = Label(
                 text=name,
                 font_size=MOBILE_FONT_SM,
-                color=(0.8, 0.8, 0.8, 1),
+                color=(0.9, 0.9, 0.9, 1),
                 size_hint_x=0.4,
-                halign='left'
+                halign='left',
+                outline_width=1.0,
+                outline_color=(0,0,0,1)
             )
             
-            role_box = BoxLayout(orientation='horizontal', size_hint_x=0.6)
+            role_box = BoxLayout(orientation='horizontal', size_hint_x=0.6, spacing=dp(5))
             
             role_icon = Image(
                 source=f'assets/{data["role"].lower()}_icon.png',
-                size_hint=(0.2, 1),
-                allow_stretch=True
+                size_hint=(0.25, 1),
+                allow_stretch=True,
+                keep_ratio=True
             )
             
             role_label = Label(
                 text=f"{data['role'].upper()} ({status})",
                 font_size=MOBILE_FONT_SM,
                 color=color,
-                size_hint=(0.8, 1),
-                halign='left'
+                size_hint=(0.75, 1),
+                halign='left',
+                outline_width=1.0,
+                outline_color=(0,0,0,1)
             )
             
             role_box.add_widget(role_icon)
@@ -1480,16 +1431,16 @@ class DakatiGame(BoxLayout):
             player_card.add_widget(role_box)
             roles_box.add_widget(player_card)
         
-        scroll = ScrollView(size_hint=(1, 0.6))
+        scroll = ScrollView(size_hint=(1, 0.58))
         scroll.add_widget(roles_box)
         
         restart_btn = Button(
             text="PLAY AGAIN",
             size_hint=(0.8, None),
-            size=(dp(200), dp(50)),
+            height=dp(50),
             pos_hint={'center_x': 0.5},
             background_normal='',
-            background_color=(0.2, 0.4, 0.8, 1),
+            background_color=(0.15, 0.35, 0.75, 1),
             font_size=MOBILE_FONT_MD,
             bold=True
         )
@@ -1503,21 +1454,47 @@ class DakatiGame(BoxLayout):
         self.add_widget(main_layout)
 
     def restart_game(self, instance):
+        self.clear_widgets()
+        # Reset background overlay
+        if hasattr(self, 'bg_overlay_color'):
+            self.bg_overlay_color.rgba = (0, 0, 0, 0)
         self.__init__()
 
     def show_popup(self, title, message, callback, image=None):
-        content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(10))
+        content = BoxLayout(orientation='vertical', spacing=dp(12), padding=dp(15))
 
+        # Modern glassmorphism / dark slate dialog card
         with content.canvas.before:
-            Color(0.95, 0.95, 0.95, 1)
-            RoundedRectangle(pos=content.pos, size=content.size, radius=[10,])
+            Color(0.08, 0.08, 0.15, 0.95)
+            popup_bg = RoundedRectangle(pos=content.pos, size=content.size, radius=[12,])
+            Color(0.3, 0.3, 0.5, 0.8)
+            popup_border = Line(rounded_rectangle=[content.x, content.y, content.width, content.height, 12], width=1.5)
 
+        # Responsive canvas update handler
+        def update_popup_bg(instance, value):
+            popup_bg.pos = instance.pos
+            popup_bg.size = instance.size
+            popup_border.rounded_rectangle = [instance.x, instance.y, instance.width, instance.height, 12]
+
+        content.bind(pos=update_popup_bg, size=update_popup_bg)
+
+        # Custom title label inside layout (cleaner than default separator)
         clean_title = title.split(']')[-1] if ']' in title else title
+        title_lbl = Label(
+            text=clean_title.upper(),
+            font_size=MOBILE_FONT_LG,
+            bold=True,
+            color=(0.9, 0.9, 0.1, 1),
+            size_hint_y=None,
+            height=dp(30),
+            halign='center'
+        )
+        content.add_widget(title_lbl)
 
         if image:
             img = Image(
                 source=image,
-                size_hint=(1, 0.6),
+                size_hint=(1, 0.5),
                 allow_stretch=True,
                 keep_ratio=True
             )
@@ -1527,35 +1504,32 @@ class DakatiGame(BoxLayout):
             text=message,
             font_size=MOBILE_FONT_MD,
             markup=True,
-            color=(0, 0, 0, 1),
-            size_hint=(1, 0.4),
+            color=(0.95, 0.95, 0.95, 1),
+            size_hint=(1, 0.3),
             bold=True,
             halign='center',
-            valign='middle',
-            text_size=(Window.width*0.7, None)
+            valign='middle'
         )
+        message_label.bind(width=lambda instance, val: setattr(instance, 'text_size', (val, None)))
         content.add_widget(message_label)
         
         btn = Button(
             text="OK",
             size_hint=(0.6, None),
-            height=dp(40),
+            height=dp(42),
             pos_hint={'center_x': 0.5},
             background_normal='',
-            background_color=(0.2, 0.6, 0.2, 1),
+            background_color=(0.15, 0.55, 0.15, 1),
             color=(1, 1, 1, 1),
             bold=True
         )
 
         popup = Popup(
-            title=clean_title,
-            title_size=MOBILE_FONT_MD,
-            title_align='center',
-            title_color=[0, 0, 0, 1],
+            title="",
+            title_size=0,
+            separator_height=0,
             content=content,
-            size_hint=(0.8, 0.6),
-            separator_height=dp(2),
-            separator_color=(0.2, 0.6, 0.2, 1),
+            size_hint=(0.85, 0.55),
             background=''
         )
 
@@ -1565,28 +1539,61 @@ class DakatiGame(BoxLayout):
         popup.open()
 
     def show_error_popup(self, message):
-        content = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(10))
-        content.add_widget(Label(
-            text=message,
-            font_size=MOBILE_FONT_MD,
+        content = BoxLayout(orientation='vertical', spacing=dp(12), padding=dp(15))
+
+        with content.canvas.before:
+            Color(0.15, 0.05, 0.05, 0.95) # Dark red overlay
+            popup_bg = RoundedRectangle(pos=content.pos, size=content.size, radius=[10,])
+            Color(0.8, 0.2, 0.2, 0.8)
+            popup_border = Line(rounded_rectangle=[content.x, content.y, content.width, content.height, 10], width=1.5)
+
+        def update_popup_bg(instance, value):
+            popup_bg.pos = instance.pos
+            popup_bg.size = instance.size
+            popup_border.rounded_rectangle = [instance.x, instance.y, instance.width, instance.height, 10]
+
+        content.bind(pos=update_popup_bg, size=update_popup_bg)
+
+        title_lbl = Label(
+            text="ERROR",
+            font_size=MOBILE_FONT_LG,
             bold=True,
-            color=(1, 1, 1, 1)
-        ))
+            color=(0.9, 0.2, 0.2, 1),
+            size_hint_y=None,
+            height=dp(30),
+            halign='center'
+        )
+        content.add_widget(title_lbl)
+
+        msg_lbl = Label(
+            text=message,
+            font_size=MOBILE_FONT_SM,
+            bold=True,
+            color=(0.95, 0.95, 0.95, 1),
+            size_hint=(1, 0.5),
+            halign='center',
+            valign='middle'
+        )
+        msg_lbl.bind(width=lambda instance, val: setattr(instance, 'text_size', (val, None)))
+        content.add_widget(msg_lbl)
 
         btn = Button(
             text="OK",
-            size_hint=(1, None),
+            size_hint=(0.8, None),
             height=dp(40),
+            pos_hint={'center_x': 0.5},
             background_normal='',
-            background_color=(0.8, 0.2, 0.2, 1)
+            background_color=(0.8, 0.2, 0.2, 1),
+            bold=True
         )
 
         popup = Popup(
-            title="Error",
+            title="",
+            title_size=0,
+            separator_height=0,
             content=content,
-            size_hint=(0.8, 0.4),
-            separator_color=(1, 1, 1, 1),
-            title_font='Roboto-Bold.ttf'
+            size_hint=(0.8, 0.45),
+            background=''
         )
 
         btn.bind(on_press=popup.dismiss)
@@ -1596,7 +1603,8 @@ class DakatiGame(BoxLayout):
 class DakatiApp(App):
     def build(self):
         self.title = 'Dakati Game'
-        Window.size = (780, 1380)  # Standard mobile size
+        # Standard mobile size for testing on desktop
+        Window.size = (480, 850)
         return DakatiGame()
 
 if __name__ == '__main__':
