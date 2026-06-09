@@ -1,63 +1,13 @@
 
-<div align="center">
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0">
-<tr>
-<td align="center">
-
-<table width="100%" border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td align="center">
-
-<div style="animation: float 3s ease-in-out infinite;">
-  <img src="assets/thief_icon.png" width="80" style="display: inline-block; margin: 0 20px;">
-  <img src="assets/angel_icon.png" width="80" style="display: inline-block; margin: 0 20px;">
-  <img src="assets/citizen_icon.png" width="80" style="display: inline-block; margin: 0 20px;">
-</div>
-
-<style>
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-@keyframes slideIn {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes fadeInUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes glowPulse {
-  0% { box-shadow: 0 0 5px rgba(0,0,0,0.3); }
-  50% { box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-  100% { box-shadow: 0 0 5px rgba(0,0,0,0.3); }
-}
-</style>
-
-</td>
-</tr>
-</table>
-
 # Dakati Game - A Dacoit Themed Social Deduction Game
-
-## Look-Alike Sound-Alike (LASA) Games Error Prevention System
 
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Kivy](https://img.shields.io/badge/Kivy-2.0+-FF6F00?style=for-the-badge&logo=kivy&logoColor=white)](https://kivy.org/)
 [![Cross Platform](https://img.shields.io/badge/Cross-Platform-2D8C3C?style=for-the-badge&logo=android&logoColor=white)](https://kivy.org/)
 
 [![Status](https://img.shields.io/badge/Status-Completed-brightgreen?style=flat-square)]()
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
 [![Course](https://img.shields.io/badge/Course-Algorithms%20Analysis-FF5722?style=flat-square)]()
-
-</div>
 
 ---
 
@@ -72,7 +22,7 @@ Dakati Game is a professional social deduction mobile game developed as a **cour
 - [Game Mechanics](#game-mechanics)
 - [Use Case](#use-case)
 - [Technology Stack](#technology-stack)
-- [Database Design](#database-design)
+- [Data Structures](#data-structures)
 - [Algorithms Used](#algorithms-used)
 - [Installation Guide](#installation-guide)
 - [Game Flow](#game-flow)
@@ -86,8 +36,6 @@ Dakati Game is a professional social deduction mobile game developed as a **cour
 ---
 
 ## About the Game
-
-Dakati Game addresses the challenge of creating engaging multiplayer deduction experiences on mobile platforms.
 
 | Aspect | Description |
 |:-------|:------------|
@@ -127,7 +75,6 @@ This project was developed to fulfill the **requirements of the Algorithms Analy
 
 ### User Interface
 - Glass morphism design with semi-transparent cards
-- Floating animation effects on welcome screen
 - Circular player positioning using trigonometric calculations
 - Dynamic grid layouts for phase-specific displays
 - Custom animated buttons with scale effects
@@ -148,7 +95,6 @@ This project was developed to fulfill the **requirements of the Algorithms Analy
 - Player registration with validation (unique names, digit requirement)
 - Game history tracking with round-by-round events
 - Elimination recording (voting vs night elimination)
-- JSON-serializable data structures
 
 ---
 
@@ -204,46 +150,38 @@ A group of 8 friends can:
 
 | Technology | Badge |
 |:-----------|:------|
-| **Language:** Python 3.9+ | [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) |
-| **GUI Framework:** Kivy 2.0+ | [![Kivy](https://img.shields.io/badge/Kivy-2.0+-FF6F00?style=flat-square&logo=kivy&logoColor=white)](https://kivy.org/) |
+| Language: Python 3.9+ | [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) |
+| GUI Framework: Kivy 2.0+ | [![Kivy](https://img.shields.io/badge/Kivy-2.0+-FF6F00?style=flat-square&logo=kivy&logoColor=white)](https://kivy.org/) |
 
 ### UI Components
 
-| Technology | Badge |
-|:-----------|:------|
-| **Graphics:** Kivy Canvas | [![Canvas](https://img.shields.io/badge/Graphics-Kivy%20Canvas-2962FF?style=flat-square)](https://kivy.org/doc/stable/api-kivy.graphics.html) |
-| **Animations:** Kivy Animation | [![Animation](https://img.shields.io/badge/Animations-Kivy-00ACC1?style=flat-square)](https://kivy.org/doc/stable/api-kivy.animation.html) |
-| **Layouts:** Box, Float, Grid | [![Layouts](https://img.shields.io/badge/Layouts-Kivy-8BC34A?style=flat-square)](https://kivy.org/doc/stable/api-kivy.uix.html) |
-| **Styling:** KV Language | [![KV](https://img.shields.io/badge/Styling-KV%20Language-FF9800?style=flat-square)](https://kivy.org/doc/stable/guide/lang.html) |
+| Technology | Description |
+|:-----------|:------------|
+| Graphics | Kivy Canvas for custom drawing |
+| Animations | Kivy Animation framework |
+| Layouts | BoxLayout, FloatLayout, GridLayout |
+| Styling | KV Language for UI design |
 
 ### Audio
 
-| Technology | Badge |
-|:-----------|:------|
-| **Audio:** Kivy SoundLoader | [![Audio](https://img.shields.io/badge/Audio-Kivy-FF4081?style=flat-square)](https://kivy.org/doc/stable/api-kivy.core.audio.html) |
-| **Audio Files:** MP3 Support | [![MP3](https://img.shields.io/badge/Format-MP3-E91E63?style=flat-square)](https://en.wikipedia.org/wiki/MP3) |
+| Technology | Description |
+|:-----------|:------------|
+| Audio | Kivy SoundLoader |
+| Audio Files | MP3 format support |
 
 ### Mobile Packaging
 
-| Technology | Badge |
-|:-----------|:------|
-| **Android:** Buildozer | [![Buildozer](https://img.shields.io/badge/Android-Buildozer-3DDC84?style=flat-square)](https://buildozer.readthedocs.io/) |
-| **iOS:** Kivy-iOS | [![iOS](https://img.shields.io/badge/iOS-Kivy%20iOS-000000?style=flat-square)](https://github.com/kivy/kivy-ios) |
-| **Windows/Mac:** PyInstaller | [![PyInstaller](https://img.shields.io/badge/Desktop-PyInstaller-5E4FA2?style=flat-square)](https://pyinstaller.org/) |
-
-### Data Processing
-
-| Technology | Badge |
-|:-----------|:------|
-| **Data Structures:** Python Dict, List, Set | [![Python](https://img.shields.io/badge/Data-Python%20Collections-3776AB?style=flat-square)](https://docs.python.org/3/tutorial/datastructures.html) |
-| **Randomization:** Random Module | [![Random](https://img.shields.io/badge/Shuffle-Random-43A047?style=flat-square)](https://docs.python.org/3/library/random.html) |
-| **Mathematics:** Math Module (trigonometry) | [![Math](https://img.shields.io/badge/Math-Trigonometry-FF8C00?style=flat-square)](https://docs.python.org/3/library/math.html) |
+| Platform | Tool |
+|:---------|:-----|
+| Android | Buildozer |
+| iOS | Kivy-iOS |
+| Windows/Mac | PyInstaller |
 
 ---
 
-## Database Design
+## Data Structures
 
-### Player Data Structure (In-Memory)
+### Player Data Structure (In-Memory Dictionary)
 
 | Key | Type | Description |
 |-----|------|-------------|
@@ -253,7 +191,7 @@ A group of 8 friends can:
 | role_icon | String | Image path reference |
 | known_thieves | List | Thief partner reference |
 
-### Game History Structure
+### Game History Structure (List of Dictionaries)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -268,7 +206,7 @@ A group of 8 friends can:
 | alive_players | Current active players |
 | eliminated_players | Removed players |
 | player_names | All registered names |
-| current_votes | Dictionary of vote counts |
+| current_votes | Dictionary of vote counts (defaultdict(int)) |
 
 ---
 
@@ -288,6 +226,9 @@ def layout_cards(instance, value):
         angle = math.radians(idx * angle_step)
         x = center_x + radius * math.cos(angle) - card_width/2
         y = center_y + radius * math.sin(angle) - card_height/2
+        
+        card_widget.size = (card_width, card_height)
+        card_widget.pos = (instance.x + x, instance.y + y)
 ```
 
 ### Vote Processing Algorithm
@@ -301,9 +242,9 @@ def layout_cards(instance, value):
 
 ### Role Assignment Algorithm
 
-- Random shuffle of 8 roles
+- Random shuffle of 8 roles using random.shuffle()
 - O(n) distribution to players
-- Thief partner linking O(k) where k=2
+- Thief partner linking O(k) where k = number of thieves (2)
 
 ### Dynamic Card Sizing
 
@@ -311,7 +252,14 @@ def layout_cards(instance, value):
 if num_options > 5:
     scale_factor = 0.9 - (min(num_options, 8) - 5) * 0.08
     card_width = base_card_width * scale_factor
+    card_height = base_card_height * scale_factor
 ```
+
+### Name Validation Algorithm
+
+- Empty string check: O(1)
+- Digit presence check using any() function: O(m) where m is name length
+- Uniqueness check using set comparison: O(n)
 
 ---
 
@@ -320,23 +268,17 @@ if num_options > 5:
 ### Prerequisites
 - Python 3.8 or higher
 - pip package manager
-- Git (optional)
 
-### Step 1: Clone or Download
+### Step 1: Download the Project
 
-```bash
-git clone https://github.com/precious-05/dakati-game.git
-cd dakati-game
-```
+Download the dakati_game.py file and create an assets folder with all required images.
 
 ### Step 2: Install Kivy and Dependencies
 
 ```bash
 pip install kivy
-pip install kivy[full]  # recommended for audio and all features
+pip install kivy[full]
 ```
-
-For Windows, additional dependencies may be required. Check the Kivy documentation.
 
 ### Step 3: Verify Assets Directory
 
@@ -379,79 +321,27 @@ python dakati_game.py
 ```bash
 pip install buildozer
 buildozer init
-# Edit buildozer.spec - set package name, permissions
+# Edit buildozer.spec file
 buildozer -v android debug
 ```
-
-The APK will be generated in the `bin/` directory.
 
 ---
 
 ## Game Flow
 
-<div align="center">
-<table width="90%" border="0" cellspacing="5" cellpadding="8">
-<tr>
-<td align="center">
+| Step | Phase | Description |
+|:----:|:------|:------------|
+| 1 | Welcome Screen | Slideshow background with glass morphism buttons |
+| 2 | Role Introduction | Players view Thief/Angel/Citizen descriptions |
+| 3 | Registration | 8 players enter names (must contain numbers, unique) |
+| 4 | Role Reveal | Each player sees their secret role with description |
+| 5 | Voting Phase | Circular interface, sequential voting |
+| 6 | Thieves Phase | Secret target selection by thieves |
+| 7 | Angel Phase | Protection guess by angel |
+| 8 | Results Phase | Elimination display |
+| 9 | Game Over | Victory screen with role summary |
 
-1
-
-</td>
-<td align="center">
-
-2
-
-</td>
-<td align="center">
-
-3
-
-</td>
-<td align="center">
-
-4
-
-</td>
-<td align="center">
-
-5
-
-</td>
-<td align="center">
-
-6
-
-</td>
-<td align="center">
-
-7
-
-</td>
-</tr>
-<tr>
-<td align="center">Welcome Screen<br>Slideshow</td>
-<td align="center">Player<br>Registration</td>
-<td align="center">Role<br>Reveal</td>
-<td align="center">Voting<br>Phase</td>
-<td align="center">Thieves'<br>Phase</td>
-<td align="center">Angel's<br>Phase</td>
-<td align="center">Results &<br>Game Over</td>
-</tr>
-</table>
-</div>
-
-### Detailed Flow
-
-1. **Welcome Screen**: Slideshow background with glass morphism buttons (Read Principles, Start Game)
-2. **Role Introduction**: Players view Thief/Angel/Citizen descriptions
-3. **Registration**: 8 players enter names (must contain numbers, unique)
-4. **Role Reveal**: Each player sees their secret role with description
-5. **Game Loop** (repeat until win):
-   - Voting Phase: Circular interface, sequential voting
-   - Thieves Phase: Secret target selection
-   - Angel Phase: Protection guess
-   - Results Phase: Elimination display
-6. **Game Over**: Victory screen with role summary
+Steps 5-8 repeat until win condition is met.
 
 ---
 
@@ -528,11 +418,10 @@ DakatiGame/
 │   ├── slide1.jpg through slide7.jpg   # Welcome slideshow images
 │   └── player_1.png through player_8.png # Player number icons
 │
-├── audio/
-│   ├── detect.mp3                      # General background music
-│   ├── suspense.mp3                    # Voting phase music
-│   ├── thieves.mp3                     # Thieves phase music
-│   └── angel.mp3                       # Angel phase music
+├── detect.mp3                          # General background music
+├── suspense.mp3                        # Voting phase music
+├── thieves.mp3                         # Thieves phase music
+├── angel.mp3                           # Angel phase music
 │
 ├── buildozer.spec                      # Android build configuration
 │
@@ -545,8 +434,8 @@ DakatiGame/
 
 ### Audio Tracks
 
-| Track | File | Phase |
-|-------|------|-------|
+| Track | File Name | Phase |
+|-------|-----------|-------|
 | General BGM | detect.mp3 | Welcome, Registration, Role Reveal, Results, Game Over |
 | Suspense | suspense.mp3 | Voting Phase |
 | Stealth | thieves.mp3 | Thieves Phase |
@@ -580,12 +469,12 @@ def update_music(self, phase=None):
 
 ### Android Build (Buildozer)
 
-1. **Initialize buildozer**:
+1. Initialize buildozer:
 ```bash
 buildozer init
 ```
 
-2. **Edit buildozer.spec**:
+2. Edit buildozer.spec:
 ```ini
 title = Dakati Game
 package.name = dakati
@@ -595,15 +484,13 @@ source.include_exts = py,png,jpg,kv,atlas,mp3
 version = 1.0.0
 requirements = python3,kivy
 orientation = portrait
-osx.python_version = 3
-osx.kivy_version = 2.1.0
 fullscreen = 1
 android.permissions = INTERNET
 android.api = 30
 android.ndk = 23b
 ```
 
-3. **Build APK**:
+3. Build APK:
 ```bash
 buildozer -v android debug
 ```
@@ -638,16 +525,12 @@ pyinstaller dakati_game.py -w --onefile
 - Leaderboards and statistics tracking
 - Voice chat integration
 - Themed visual effects for each role
-- Difficulty levels (time limits for voting)
+- Difficulty levels with time limits for voting
 - Replay system for game review
 
 ---
 
 ## Developed By
-
-<table width="100%" border="0" cellspacing="0" cellpadding="8">
-<tr>
-<td width="50%" valign="top">
 
 | | |
 |:---|:---|
@@ -655,27 +538,14 @@ pyinstaller dakati_game.py -w --onefile
 | **Supervisor Name** | Faisal Hafeez |
 | **GitHub** | precious-05 |
 | **Email** | alina.insights@gmail.com |
-
-</td>
-<td width="50%" valign="top">
-
-| | |
-|:---|:---|
 | **Class & Semester** | BS Computer Science - 4th Semester |
 | **Department** | Department of Computer Science |
 | **Course** | Algorithms Analysis |
 | **LinkedIn** | alina-liaquat-779347325 |
 
-</td>
-</tr>
-</table>
-
 ---
 
 <div align="center">
-<table width="100%" border="0" cellspacing="0" cellpadding="20">
-<tr>
-<td align="center">
 
 Dakati Game - A Dacoit Themed Social Deduction Game
 
@@ -685,9 +555,4 @@ Improving social gaming experiences through algorithmic game design
 
 This project was submitted in partial fulfillment of the requirements for the Algorithms Analysis course.
 
-</td>
-</tr>
-</table>
 </div>
-
-
