@@ -771,10 +771,10 @@ class RoleShowcaseScreen(ModalView):
         self.content_box = BoxLayout(
             orientation='vertical',
             spacing=dp(12),
-            padding=[dp(12), dp(25), dp(12), dp(10)],
-            size_hint=(0.74, 0.76),
-            pos_hint={'center_x': 0.5, 'center_y': 0.53}
-        )
+            padding=[dp(12), dp(35), dp(12), dp(10)],  # Top padding 30 (increase)
+            size_hint=(0.63, 0.70),  # WIDTH 60% (pehle 74% tha), HEIGHT 70%
+            pos_hint={'center_x': 0.5, 'center_y': 0.48}  # POSITION Y = 48% (neeche)
+            )
         self.root_layout.add_widget(self.content_box)
 
         # "Next / Done" button at bottom of screen, outside frame
