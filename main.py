@@ -273,8 +273,8 @@ class GameTextInput(TextInput):
         self.background_normal = ''
         self.background_active = ''
         self.background_color = (0, 0, 0, 0)
-        self.cursor_color = (1, 1, 1, 1)
-        self.foreground_color = (1, 1, 1, 1)
+        self.cursor_color = (0.88, 0.65, 0.12, 1)  # Golden cursor
+        self.foreground_color = (1, 1, 1, 1)  # PURE WHITE text - clearly visible
 
 # Custom Widgets
 class PlayerCard(ButtonBehavior, BoxLayout):
@@ -1382,7 +1382,7 @@ class DakatiGame(FloatLayout):
         Clock.schedule_once(show_roles, 0.4)
         
     def autofill_player_names(self, instance):
-        names = ["Sikandar1", "Shera2", "Mani3", "Billo4", "Raja5", "Chor6", "Angel7", "Kaka8"]
+        names = ["Ali1", "Sara2", "Ahmed3", "Fatima4", "Hassan5", "Zara6", "Omar7", "Lina8"]
         for input_widget, name in zip(self.player_inputs, names):
             input_widget.text = name
 
@@ -1478,7 +1478,7 @@ class DakatiGame(FloatLayout):
             input_box.add_widget(player_input)
             input_grid.add_widget(input_box)
 
-        scroll = ScrollView(size_hint=(1, 0.7))
+        scroll = ScrollView(size_hint=(1, 0.99))
         scroll.add_widget(input_grid)
 
         actions_layout = BoxLayout(
