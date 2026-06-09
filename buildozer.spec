@@ -13,7 +13,7 @@ package.domain = org.dakati
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,ttf
+source.include_exts = py,png,jpg,kv,atlas,ttf,mp3
 
 # (list) List of exclusions using pattern matching
 source.exclude_dirs = tests, bin, .git, .github

@@ -21,6 +21,7 @@ from kivy.lang import Builder
 import random
 from collections import defaultdict
 import os
+from kivy.core.audio import SoundLoader
 from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.behaviors import ButtonBehavior
@@ -310,7 +311,7 @@ class RoleRevealScreen(ModalView):
         super().__init__(**kwargs)
         self.background = 'assets/role_reveal_bg.jpg'
         self.background_color = (1, 1, 1, 1)
-        self.size_hint = (0.95, 0.9)
+        self.size_hint = (1, 1)
 
 class GameMenuModal(ModalView):
     def __init__(self, game_instance, **kwargs):
@@ -746,6 +747,13 @@ class RoleShowcaseScreen(ModalView):
         self.build_ui()
         self.show_role(0)
 
+    def wrap_text_by_words(self, text, words_per_line=4):
+        words = text.split()
+        lines = []
+        for i in range(0, len(words), words_per_line):
+            lines.append(" ".join(words[i:i+words_per_line]))
+        return "\n".join(lines)
+
     def build_ui(self):
         self.root_layout = FloatLayout()
 
@@ -759,10 +767,11 @@ class RoleShowcaseScreen(ModalView):
 
         # Content sits directly inside the frame area of roles_bg.jpg
         # Frame inner area is approx: x=13%, y=12%, w=74%, h=76% of screen
+        # We increase top padding to push the title down from the top edge of the frame
         self.content_box = BoxLayout(
             orientation='vertical',
-            spacing=dp(6),
-            padding=[dp(10), dp(8), dp(10), dp(8)],
+            spacing=dp(12),
+            padding=[dp(12), dp(25), dp(12), dp(10)],
             size_hint=(0.74, 0.76),
             pos_hint={'center_x': 0.5, 'center_y': 0.53}
         )
@@ -806,30 +815,70 @@ class RoleShowcaseScreen(ModalView):
         )
         Animation(opacity=1, duration=0.5, t='out_quad').start(title)
 
-        # --- Role icon — fills the frame interior, no extra wrapper/circles ---
+        # --- Role icon — framed container matching role's accent color ---
+        img_container = BoxLayout(
+            orientation='vertical',
+            size_hint=(None, None),
+            size=(dp(120), dp(120)),
+            pos_hint={'center_x': 0.5},
+            padding=dp(6),
+            opacity=0
+        )
+        with img_container.canvas.before:
+            Color(0.08, 0.08, 0.15, 0.6)
+            img_bg = RoundedRectangle(pos=img_container.pos, size=img_container.size, radius=[dp(15)])
+            Color(*accent[:3], 0.8)
+            img_border = Line(rounded_rectangle=[img_container.x, img_container.y, img_container.width, img_container.height, dp(15)], width=2.0)
+            
+        def _upd_img_frame(inst, val, bg=img_bg, border=img_border):
+            bg.pos = inst.pos
+            bg.size = inst.size
+            border.rounded_rectangle = [inst.x, inst.y, inst.width, inst.height, dp(15)]
+            
+        img_container.bind(pos=_upd_img_frame, size=_upd_img_frame)
+        
         icon_img = Image(
             source=role['image'],
-            size_hint=(1, None),
-            height=dp(170),
             allow_stretch=True,
-            keep_ratio=True,
+            keep_ratio=True
+        )
+        img_container.add_widget(icon_img)
+        Animation(opacity=1, duration=0.8, t='out_quad').start(img_container)
+
+        # --- Description Glass Card ---
+        desc_card = BoxLayout(
+            orientation='vertical',
+            size_hint=(0.8, None),
+            height=dp(115),
+            pos_hint={'center_x': 0.5},
+            padding=[dp(12), dp(10), dp(12), dp(10)],
             opacity=0
         )
-        Animation(opacity=1, duration=0.8, t='out_quad').start(icon_img)
-
-        # --- Description ---
-        desc = Label(
-            text=role['description'],
-            font_size='13sp',
+        with desc_card.canvas.before:
+            Color(0.05, 0.05, 0.12, 0.75)
+            desc_bg = RoundedRectangle(pos=desc_card.pos, size=desc_card.size, radius=[dp(12)])
+            Color(*accent[:3], 0.6)
+            desc_border = Line(rounded_rectangle=[desc_card.x, desc_card.y, desc_card.width, desc_card.height, dp(12)], width=1.5)
+            
+        def _upd_desc_card(inst, val, bg=desc_bg, border=desc_border):
+            bg.pos = inst.pos
+            bg.size = inst.size
+            border.rounded_rectangle = [inst.x, inst.y, inst.width, inst.height, dp(12)]
+            
+        desc_card.bind(pos=_upd_desc_card, size=_upd_desc_card)
+        
+        wrapped_desc = self.wrap_text_by_words(role['description'], 4)
+        desc_lbl = Label(
+            text=wrapped_desc,
+            font_size='12sp',
             color=(0.95, 0.95, 0.95, 1),
             halign='center',
-            valign='top',
-            size_hint=(1, None),
-            height=dp(72),
-            opacity=0
+            valign='middle',
+            size_hint=(1, 1)
         )
-        desc.bind(width=lambda inst, val: setattr(inst, 'text_size', (val, None)))
-        Animation(opacity=1, duration=1.0, t='out_quad').start(desc)
+        desc_lbl.bind(width=lambda inst, val: setattr(inst, 'text_size', (val, None)))
+        desc_card.add_widget(desc_lbl)
+        Animation(opacity=1, duration=1.0, t='out_quad').start(desc_card)
 
         # --- Page indicator dots ---
         dots_row = BoxLayout(
@@ -850,9 +899,10 @@ class RoleShowcaseScreen(ModalView):
             dots_row.add_widget(dot)
 
         self.content_box.add_widget(title)
-        self.content_box.add_widget(icon_img)
-        self.content_box.add_widget(desc)
+        self.content_box.add_widget(img_container)
+        self.content_box.add_widget(desc_card)
         self.content_box.add_widget(dots_row)
+        self.content_box.add_widget(Widget(size_hint_y=1))
 
         # Show next button after brief delay
         self.next_btn.opacity = 0
@@ -902,6 +952,9 @@ class DakatiGame(FloatLayout):
         self.eliminated_in_voting = None
         self.eliminated_at_night = None
         self.game_history = []
+        self.music_muted = False
+        self.current_sound = None
+        self.current_track_name = None
         
         # 1. Background image layer
         self.bg_image = FitImage(source='assets/default_bg.jpg', size_hint=(1, 1))
@@ -963,11 +1016,68 @@ class DakatiGame(FloatLayout):
             self.bg_overlay.alpha = 0.7
         else:
             self.bg_overlay.alpha = 0.15
+            
+        self.update_music(phase)
+
+    def update_music(self, phase=None):
+        if self.music_muted:
+            self.stop_music()
+            return
+
+        # Determine track based on phase/state
+        p = (phase or self.current_phase or "").upper()
+        if p == "VOTING":
+            track = "suspense.mp3"
+        elif p == "THIEVES":
+            track = "thieves.mp3"
+        elif p == "ANGEL":
+            track = "angel.mp3"
+        else:
+            track = "detect.mp3"
+
+        if self.current_track_name == track:
+            if self.current_sound and self.current_sound.state == 'stop':
+                self.current_sound.play()
+            return
+
+        if self.current_sound:
+            self.current_sound.stop()
+
+        self.current_track_name = track
+        if os.path.exists(track):
+            self.current_sound = SoundLoader.load(track)
+            if self.current_sound:
+                self.current_sound.loop = True
+                self.current_sound.play()
+        else:
+            print(f"[AUDIO WARN] Audio file {track} not found in root directory.")
+
+    def stop_music(self):
+        if self.current_sound:
+            self.current_sound.stop()
+
+    def toggle_mute(self, instance=None):
+        self.music_muted = not self.music_muted
+        if self.music_muted:
+            self.stop_music()
+        else:
+            self.current_track_name = None # force reloading the music
+            self.update_music()
+        self.update_mute_buttons_ui()
+
+    def update_mute_buttons_ui(self):
+        def walk_and_update(widget):
+            if isinstance(widget, GameButton) and widget.text in ["🔊", "🔇", "SOUND ON", "SOUND OFF"]:
+                widget.text = "SOUND OFF" if self.music_muted else "SOUND ON"
+            if hasattr(widget, 'children'):
+                for child in widget.children:
+                    walk_and_update(child)
+        walk_and_update(self)
 
     def create_game_header(self, phase_title, instruction_text=None):
         header = BoxLayout(orientation='vertical', size_hint=(1, 0.16), spacing=dp(4))
         
-        top_bar = BoxLayout(orientation='horizontal', size_hint=(1, 0.6), spacing=dp(10))
+        top_bar = BoxLayout(orientation='horizontal', size_hint=(1, 0.6), spacing=dp(8))
         
         title_lbl = Label(
             text=phase_title,
@@ -976,15 +1086,25 @@ class DakatiGame(FloatLayout):
             color=(0.9, 0.9, 0.1, 1),
             outline_width=2.0,
             outline_color=(0, 0, 0, 1),
-            size_hint=(0.75, 1),
+            size_hint=(0.5, 1),
             halign='left',
             valign='middle'
         )
         title_lbl.bind(size=lambda inst, val: setattr(inst, 'text_size', (inst.width, None)))
         
+        mute_btn = GameButton(
+            text="SOUND OFF" if self.music_muted else "SOUND ON",
+            size_hint=(0.28, 0.8),
+            pos_hint={'center_y': 0.5},
+            custom_bg_color=(0.15, 0.15, 0.22, 0.9),
+            font_size=MOBILE_FONT_XS,
+            bold=True
+        )
+        mute_btn.bind(on_press=self.toggle_mute)
+        
         menu_btn = GameButton(
             text="= MENU",
-            size_hint=(0.25, 0.8),
+            size_hint=(0.22, 0.8),
             pos_hint={'center_y': 0.5},
             custom_bg_color=(0.15, 0.15, 0.22, 0.9),
             font_size=MOBILE_FONT_XS,
@@ -993,6 +1113,7 @@ class DakatiGame(FloatLayout):
         menu_btn.bind(on_press=lambda x: self.open_game_menu())
         
         top_bar.add_widget(title_lbl)
+        top_bar.add_widget(mute_btn)
         top_bar.add_widget(menu_btn)
         header.add_widget(top_bar)
         
@@ -1107,6 +1228,10 @@ class DakatiGame(FloatLayout):
     def show_welcome_screen(self):
         self.clear_widgets()
         self.stop_slideshow()
+        
+        self.main_content.padding = 0
+        self.current_phase = "WELCOME"
+        self.update_music("WELCOME")
 
         self.main_layout = FloatLayout()
 
@@ -1150,6 +1275,19 @@ class DakatiGame(FloatLayout):
             self.slideshow_event = Clock.schedule_interval(change_slide, 5)
 
         Clock.schedule_once(start_slideshow, 0)
+
+        # Create mute button in top right of the welcome screen
+        self.welcome_mute_btn = GameButton(
+            text="SOUND OFF" if self.music_muted else "SOUND ON",
+            size_hint=(None, None),
+            size=(dp(110), dp(40)),
+            pos_hint={'right': 0.96, 'top': 0.96},
+            custom_bg_color=(0.15, 0.15, 0.22, 0.9),
+            font_size=MOBILE_FONT_XS,
+            bold=True
+        )
+        self.welcome_mute_btn.bind(on_press=self.toggle_mute)
+        self.main_layout.add_widget(self.welcome_mute_btn)
 
         # Button card layout for glassmorphism grouping
         button_container = BoxLayout(
@@ -1249,12 +1387,14 @@ class DakatiGame(FloatLayout):
             input_widget.text = name
 
     def start_registration(self, instance=None):
+        self.main_content.padding = dp(12)
         self.setup_background("registration")
         self.clear_widgets()
         self.current_phase = "REGISTRATION"
 
         header = BoxLayout(orientation='vertical', size_hint=(1, 0.15), spacing=dp(5))
 
+        title_box = BoxLayout(orientation='horizontal', size_hint=(1, None), height=dp(40))
         title = Label(
             text="PLAYER REGISTRATION",
             font_size=MOBILE_FONT_XL,
@@ -1262,10 +1402,24 @@ class DakatiGame(FloatLayout):
             color=(0.9, 0.9, 0.1, 1),
             outline_width=2,
             outline_color=(0, 0, 0, 1),
-            size_hint_y=None,
-            height=dp(40)
+            size_hint_x=0.7,
+            halign='left',
+            valign='middle'
         )
-        header.add_widget(title)
+        title.bind(size=lambda inst, val: setattr(inst, 'text_size', (inst.width, None)))
+        
+        reg_mute_btn = GameButton(
+            text="SOUND OFF" if self.music_muted else "SOUND ON",
+            size_hint=(0.3, 0.9),
+            pos_hint={'center_y': 0.5},
+            custom_bg_color=(0.15, 0.15, 0.22, 0.9),
+            font_size=MOBILE_FONT_XS,
+            bold=True
+        )
+        reg_mute_btn.bind(on_press=self.toggle_mute)
+        title_box.add_widget(title)
+        title_box.add_widget(reg_mute_btn)
+        header.add_widget(title_box)
 
         instruction = Label(
             text="Enter names for all 8 players (must contain a number):",
@@ -2018,14 +2172,32 @@ class DakatiGame(FloatLayout):
         
         main_layout = BoxLayout(orientation='vertical', spacing=dp(10), padding=dp(12))
         
+        header_box = BoxLayout(orientation='horizontal', size_hint=(1, 0.15), spacing=dp(10))
         header = Label(
             text="GAME OVER",
             font_size=MOBILE_FONT_XL,
             color=(0.9, 0.2, 0.2, 1),
             outline_width=3,
             outline_color=(0, 0, 0, 1),
-            size_hint=(1, 0.15)
+            size_hint_x=0.8,
+            halign='left',
+            valign='middle'
         )
+        header.bind(size=lambda inst, val: setattr(inst, 'text_size', (inst.width, None)))
+        
+        go_mute_btn = GameButton(
+            text="🔇" if self.music_muted else "🔊",
+            size_hint=(0.2, 0.8),
+            pos_hint={'center_y': 0.5},
+            custom_bg_color=(0.15, 0.15, 0.22, 0.9),
+            font_size=MOBILE_FONT_SM,
+            bold=True
+        )
+        go_mute_btn.bind(on_press=self.toggle_mute)
+        
+        header_box.add_widget(header)
+        header_box.add_widget(go_mute_btn)
+        main_layout.add_widget(header_box)
         
         result_msg = Label(
             text=message,
@@ -2113,7 +2285,12 @@ class DakatiGame(FloatLayout):
         # Reset background overlay
         if hasattr(self, 'bg_overlay_color'):
             self.bg_overlay_color.rgba = (0, 0, 0, 0)
+            
+        muted = getattr(self, 'music_muted', False)
         self.__init__()
+        self.music_muted = muted
+        if self.music_muted:
+            self.stop_music()
 
     def show_popup(self, title, message, callback, image=None):
         content = BoxLayout(orientation='vertical', spacing=dp(12), padding=dp(15))
@@ -2262,7 +2439,7 @@ class DakatiApp(App):
         self.title = 'Dakati Game'
         # Standard mobile size for testing on desktop
         if platform not in ('android', 'ios'):
-            Window.size = (480, 850)
+            Window.size = (490, 860)
         return DakatiGame()
 
 if __name__ == '__main__':
