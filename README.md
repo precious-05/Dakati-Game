@@ -52,19 +52,19 @@ We have included screenshots highlighting the premium glassmorphic user interfac
 
 | Welcome Screen | Principles Screen | Role Showcase |
 | :---: | :---: | :---: |
-| ![Welcome Screen](assets/mob1.jpg) | ![Principles Screen](assets/mob10.jpg) | ![Role Showcase](assets/mob2.jpg) |
+| ![Welcome Screen](assets/s4.jpg) | ![Principles Screen](assets/s6.jpg) | ![Role Showcase](assets/s2.jpg) |
 
-| Player Registration | Role Reveal | Voting Phase |
-| :---: | :---: | :---: |
-| ![Player Registration](assets/mob3.jpg) | ![Role Reveal](assets/mob4.jpg) | ![Voting Phase](assets/mob5.jpg) |
+| Player Registration | Voting Phase |
+| :---: | :---: |
+| ![Player Registration](assets/s8.jpg) | ![Voting Phase](assets/s9.jpg) |
 
 | Thieves' Phase | Angel's Phase | Results Phase |
 | :---: | :---: | :---: |
-| ![Thieves' Phase](assets/mob6.jpg) | ![Angel's Phase](assets/mob7.jpg) | ![Results Phase](assets/mob8.jpg) |
+| ![Thieves' Phase](assets/s13.jpg) | ![Angel's Phase](assets/s16.jpg) | ![Results Phase](assets/s17.jpg) |
 
 | Game Over Screen |
 | :---: |
-| ![Game Over Screen](assets/mob9.jpg) |
+| ![Game Over Screen](assets/s18.jpg) |
 
 ---
 
