@@ -28,6 +28,7 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.core.text import Label as CoreLabel
 from kivy.utils import platform
 
+
 # Set mobile-friendly default font sizes
 MOBILE_FONT_XL = '22sp'
 MOBILE_FONT_LG = '18sp'
@@ -80,6 +81,8 @@ Builder.load_string('''
         Line:
             rounded_rectangle: [self.x, self.y, self.width, self.height, 10]
             width: 1.5 if self.focus else 1.0
+        Color:
+            rgba: (1, 1, 1, 1)
 
 <PlayerCard>:
     orientation: 'vertical'
@@ -1435,7 +1438,7 @@ class DakatiGame(FloatLayout):
 
         input_grid = GridLayout(
             cols=1,
-            spacing=dp(10),
+            spacing=dp(18),
             size_hint_y=None,
             padding=dp(10)
         )
@@ -1445,7 +1448,7 @@ class DakatiGame(FloatLayout):
         for i in range(8):
             input_box = BoxLayout(orientation='horizontal', 
                                  size_hint_y=None, 
-                                 height=dp(48),
+                                 height=dp(62),
                                  spacing=dp(8))
 
             num_box = BoxLayout(orientation='horizontal',
@@ -1457,7 +1460,7 @@ class DakatiGame(FloatLayout):
                                   keep_ratio=True))
             num_box.add_widget(Label(
                 text=f"P{i+1}:",
-                font_size=MOBILE_FONT_SM,
+                font_size=MOBILE_FONT_MD,
                 bold=True,
                 color=(0.9, 0.9, 0.9, 1),
                 outline_width=1.5,
@@ -1469,9 +1472,9 @@ class DakatiGame(FloatLayout):
                 multiline=False,
                 size_hint=(0.7, 1),
                 hint_text_color=(0.6, 0.6, 0.7, 1),
-                font_size=MOBILE_FONT_SM,
+                font_size=MOBILE_FONT_MD,
                 hint_text=f"Name {i+1}",
-                padding=[dp(10), dp(12), dp(10), dp(12)]
+                padding=[dp(12), dp(18), dp(12), dp(18)]
             )
             self.player_inputs.append(player_input)
             input_box.add_widget(num_box)
@@ -1484,7 +1487,7 @@ class DakatiGame(FloatLayout):
         actions_layout = BoxLayout(
             orientation='horizontal',
             size_hint=(0.95, None),
-            height=dp(50),
+            height=dp(56),
             spacing=dp(10),
             pos_hint={'center_x': 0.5}
         )
@@ -1493,7 +1496,7 @@ class DakatiGame(FloatLayout):
             text="BACK",
             size_hint=(0.25, 1),
             custom_bg_color=(0.35, 0.25, 0.7, 1),
-            font_size=MOBILE_FONT_SM,
+            font_size=MOBILE_FONT_MD,
             bold=True
         )
         back_btn.bind(on_press=lambda x: self.show_welcome_screen())
@@ -1502,7 +1505,7 @@ class DakatiGame(FloatLayout):
             text="AUTO-FILL",
             size_hint=(0.35, 1),
             custom_bg_color=(0.88, 0.65, 0.12, 1),
-            font_size=MOBILE_FONT_SM,
+            font_size=MOBILE_FONT_MD,
             bold=True
         )
         autofill_btn.bind(on_press=self.autofill_player_names)
@@ -1511,7 +1514,7 @@ class DakatiGame(FloatLayout):
             text="CONFIRM",
             size_hint=(0.4, 1),
             custom_bg_color=(0.12, 0.64, 0.38, 1),
-            font_size=MOBILE_FONT_SM,
+            font_size=MOBILE_FONT_MD,
             bold=True
         )
         submit_btn.bind(on_press=self.validate_registration)
@@ -2273,7 +2276,6 @@ class DakatiGame(FloatLayout):
         )
         restart_btn.bind(on_press=self.restart_game)
         
-        main_layout.add_widget(header)
         main_layout.add_widget(result_msg)
         main_layout.add_widget(scroll)
         main_layout.add_widget(restart_btn)

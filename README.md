@@ -46,6 +46,28 @@ Dakati Game is a professional social deduction mobile game developed as a **cour
 
 ---
 
+## Screenshots
+
+We have included screenshots highlighting the premium glassmorphic user interface and phase-based game flow:
+
+| Welcome Screen | Principles Screen | Role Showcase |
+| :---: | :---: | :---: |
+| ![Welcome Screen](assets/mob1.jpg) | ![Principles Screen](assets/mob10.jpg) | ![Role Showcase](assets/mob2.jpg) |
+
+| Player Registration | Role Reveal | Voting Phase |
+| :---: | :---: | :---: |
+| ![Player Registration](assets/mob3.jpg) | ![Role Reveal](assets/mob4.jpg) | ![Voting Phase](assets/mob5.jpg) |
+
+| Thieves' Phase | Angel's Phase | Results Phase |
+| :---: | :---: | :---: |
+| ![Thieves' Phase](assets/mob6.jpg) | ![Angel's Phase](assets/mob7.jpg) | ![Results Phase](assets/mob8.jpg) |
+
+| Game Over Screen |
+| :---: |
+| ![Game Over Screen](assets/mob9.jpg) |
+
+---
+
 ## Course Context
 
 This project was developed to fulfill the **requirements of the Algorithms Analysis course** in the **4th Semester of BS Computer Science**.
@@ -271,7 +293,7 @@ if num_options > 5:
 
 ### Step 1: Download the Project
 
-Download the dakati_game.py file and create an assets folder with all required images.
+Download the main.py file and create an assets folder with all required images.
 
 ### Step 2: Install Kivy and Dependencies
 
@@ -307,13 +329,13 @@ dakati-game/
 ├── suspense.mp3
 ├── thieves.mp3
 ├── angel.mp3
-└── dakati_game.py
+└── main.py
 ```
 
 ### Step 4: Run the Game
 
 ```bash
-python dakati_game.py
+python main.py
 ```
 
 ### Step 5: Mobile Build (Android)
@@ -391,7 +413,7 @@ Steps 5-8 repeat until win condition is met.
 ```
 DakatiGame/
 │
-├── dakati_game.py                      # Main application with all game logic
+├── main.py                      # Main application with all game logic
 │
 ├── assets/
 │   ├── thief_icon.png                  # Thief role icon
@@ -508,7 +530,7 @@ cd kivy-ios
 
 ```bash
 pip install pyinstaller
-pyinstaller dakati_game.py -w --onefile
+pyinstaller main.py -w --onefile
 ```
 
 ---
