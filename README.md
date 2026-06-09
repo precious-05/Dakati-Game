@@ -52,7 +52,7 @@ We have included screenshots highlighting the premium glassmorphic user interfac
 
 | Welcome Screen | Principles Screen | Role Showcase |
 | :---: | :---: | :---: |
-| ![Welcome Screen](assets/s4.jpg) | ![Principles Screen](assets/s6.jpg) | ![Role Showcase](assets/s2.jpg) |
+| ![Welcome Screen](assets/s2.jpg) | ![Principles Screen](assets/s4.jpg) | ![Role Showcase](assets/s6.jpg) |
 
 | Player Registration | Voting Phase |
 | :---: | :---: |
